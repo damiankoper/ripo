@@ -1,0 +1,12 @@
+{
+    "python.pythonPath": "~/.local/share/virtualenvs/opencvtest-p_CA-LTl/bin/python",
+    "python.linting.pylintArgs": [
+        "--extension-pkg-whitelist=cv2"
+    ],
+    "spellright.language": [],
+    "spellright.documentTypes": [
+        "markdown",
+        "plaintext"
+    ],
+    "latex-workshop.latex.outDir": "../out"
+}
