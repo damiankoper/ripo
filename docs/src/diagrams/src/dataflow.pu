@@ -1,4 +1,4 @@
-@startuml
+@startuml data_flow
 title Data flow
 skinparam linetype ortho
 frame VideoCapture{

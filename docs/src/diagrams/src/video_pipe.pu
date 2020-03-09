@@ -1,4 +1,4 @@
-@startuml
+@startuml video_pipe
 title Video pipe
 start 
 partition "Wykrycie i analiza pustego stołu" {
