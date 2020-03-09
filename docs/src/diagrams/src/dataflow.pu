@@ -1,0 +1,27 @@
+@startuml
+title Data flow
+skinparam linetype ortho
+frame VideoCapture{
+  component Camera
+  component RaspberryPi
+
+  Camera <- RaspberryPi
+}
+
+database VideoFootage{
+
+}
+
+component VideoProcessor
+queue UDP_Stream
+VideoFootage <-- UDP_Stream
+VideoCapture <-- UDP_Stream
+UDP_Stream <-- VideoProcessor
+
+component PoolVD
+VideoProcessor <-- PoolVD
+note left of PoolVD
+  Pool Visualisation-Deduction
+end note
+
+@enduml

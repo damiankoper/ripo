@@ -4,9 +4,9 @@ import cv2
 import time
 # construct the argument parse and parse the arguments
 # load the image
-start = time.time()
 
 image = cv2.imread('test/images/test1.png')
+image = cv2.resize(image,(1920,1080))
 imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 width = image.shape[1]
 height = image.shape[0]
@@ -45,30 +45,23 @@ for (lower, upper) in boundaries:
     M = cv2.getPerspectiveTransform(rect, dest)
 
 
+start = time.time()
 outputKeyed = cv2.subtract(image, output)
-warp = cv2.warpPerspective(image, M, (width, height))
+#warp = cv2.warpPerspective(image, M, (width, height))
 warp2 = cv2.warpPerspective(outputKeyed, M, (width, height))
 
-gray = cv2.cvtColor(warp2, cv2.COLOR_BGR2GRAY)
+""" gray = cv2.cvtColor(warp2, cv2.COLOR_BGR2GRAY)
 circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT,
                            1, 20, param1=50, param2=30, minRadius=30, maxRadius=65)
+ """
 
-if circles is not None:
-    # convert the (x, y) coordinates and radius of the circles to integers
-    circles = np.round(circles[0, :]).astype("int")
-    # loop over the (x, y) coordinates and radius of the circles
-    for (x, y, r) in circles:
-        # draw the circle in the output image, then draw a rectangle
-        # corresponding to the center of the circle
-        cv2.circle(warp2, (x, y), r, (0, 255, 0), 4)
-        cv2.rectangle(warp2, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+end = time.time()
 
 
 # show the images
-end = time.time()
-print(end - start)
+print((end - start)*1000)
 #cv2.imshow("image", np.hstack([image, output]))
 cv2.imwrite("tests/results/detect2.png", warp2)
 cv2.imwrite("tests/results/detect1.png", output)
-cv2.imwrite("tests/results/detect.png", np.hstack([image, warp]))
+#cv2.imwrite("tests/results/detect.png", np.hstack([image, warp]))
 # cv2.waitKey(0)

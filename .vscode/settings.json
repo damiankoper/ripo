@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "~/.local/share/virtualenvs/opencvtest-p_CA-LTl/bin/python",
+    "python.pythonPath": "/home/damian_koper/.local/share/virtualenvs/ripo-sALwwkae/bin/python",
     "python.linting.pylintArgs": [
         "--extension-pkg-whitelist=cv2"
     ],
@@ -8,5 +8,8 @@
         "markdown",
         "plaintext"
     ],
-    "latex-workshop.latex.outDir": "../out"
+    "latex-workshop.latex.outDir": "../out",
+    "plantuml.diagramsRoot": "docs/src/diagrams/src",
+    "plantuml.exportOutDir": "docs/src/diagrams/out",
+    "plantuml.exportSubFolder": false
 }
