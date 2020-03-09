@@ -1,5 +1,4 @@
 @startuml video_pipe
-title Video pipe
 start 
 partition "Wykrycie i analiza pustego stołu" {
 :Ustawienie kamery nieruchomo, stół pusty;
@@ -35,6 +34,6 @@ while (następna klatka?) is (tak)
   i dedukcję stanu gry;
 endwhile
 
-end
+stop
 
 @enduml

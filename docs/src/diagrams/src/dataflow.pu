@@ -1,5 +1,4 @@
 @startuml data_flow
-title Data flow
 skinparam linetype ortho
 frame VideoCapture{
   component Camera
@@ -23,5 +22,7 @@ VideoProcessor <-- PoolVD
 note left of PoolVD
   Pool Visualisation-Deduction
 end note
+actor User
+PoolVD <- User
 
 @enduml
