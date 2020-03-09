@@ -59,7 +59,7 @@
 \title{ 
     \vspace*{50mm}
     \textsc{
-        \textbf{Pozpoznawanie i przetwarzanie obrazów}\\
+        \textbf{Rozpoznawanie i przetwarzanie obrazów}\\
         \large Sprawozdanie 
     }
 } 
@@ -84,7 +84,9 @@ Kod i wersja wykonywalna programu: \url{https://github.com/damiankoper/ripo}
 \newpage
 
 \section{Wstęp}
-Projekt zakłada stworzenie systemu umożliwiającego śledzenie stanu gry podczas gry w bilard.
+Projekt zakłada stworzenie systemu umożliwiającego śledzenie stanu stołu podczas gry w bilard. Działanie systemu rozpoczyna się od
+wykrycia i analizy pustego stołu. Następnie, już po rozpoczęciu gry, dla kolejnych klatek obrazu następują kolejno etapy wycięcia z obrazu zbędnych elementów,
+detekcji bil, klasyfikacji typu bil przy pomocy sieci neuronowych i wysłaniu wykrytego stanu stołu do komponentu odpowiedzialnego za wyświetlanie i dedukcję stanu gry.
 
 %%%%%%%%%%%%%%%%
 
@@ -94,9 +96,19 @@ Projekt zakłada stworzenie systemu umożliwiającego śledzenie stanu gry podcz
     \item Stół musi w całości zawierać się w kadrze. Nie ma znaczenia jednak przesunięcie i obrót obrazu.
 \end{enumerate}
 
-\begin{figure}[]
+\vspace{2cm}
+
+\begin{figure}[H]
     \centering
-    \includegraphics[width=5cm]{./diagrams/out/Data_flow.png}
+    \includegraphics[width=10cm]{./diagrams/out/Data_flow.png}
+    \caption{}
+    \label{}
+\end{figure}
+
+\newpage
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=14cm]{./diagrams/out/video_pipe.png}
     \caption{}
     \label{}
 \end{figure}
