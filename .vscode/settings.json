@@ -9,7 +9,6 @@
     "spellright.documentTypes": [
         "markdown",
         "plaintext",
-        "jsonc"
     ],
     "latex-workshop.latex.outDir": "../out",
     "plantuml.diagramsRoot": "docs/src/diagrams/src",
