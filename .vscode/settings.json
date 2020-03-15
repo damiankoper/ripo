@@ -3,10 +3,13 @@
     "python.linting.pylintArgs": [
         "--extension-pkg-whitelist=cv2"
     ],
-    "spellright.language": [],
+    "spellright.language": [
+        "Polish"
+    ],
     "spellright.documentTypes": [
         "markdown",
-        "plaintext"
+        "plaintext",
+        "jsonc"
     ],
     "latex-workshop.latex.outDir": "../out",
     "plantuml.diagramsRoot": "docs/src/diagrams/src",

@@ -1,0 +1,42 @@
+@startuml pull_state_cd
+title PoolState
+
+class Vector2i {
+    + x: int
+    + y: int
+}
+
+class Player {
+    + name: Enum{'A', 'B'}
+    + colorHSV: int[H,S,V]
+}
+
+class Cue {
+    + positionStart: Vector2i
+    + positionEnd: Vector2i
+    + player: Player
+}
+
+note left of Ball
+    Cue ball is {0, SOLID}
+end note
+
+class Ball {
+    + number: int
+    + position: Vector2i
+    + type: Enum('SOLID', 'STRIPED')
+}
+
+Cue o--> Player
+Cue *--> Vector2i
+Ball *--> Vector2i
+
+class PoolState {
+    + balls: Ball[]
+    + cues: Cue[]
+}
+
+PoolState "16" o--> "1" Ball
+PoolState "2" o--> "1" Cue
+
+@enduml

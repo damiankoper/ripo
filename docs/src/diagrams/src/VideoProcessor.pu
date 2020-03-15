@@ -1,0 +1,77 @@
+@startuml video_processor_cd
+title VideoProcessor
+allowmixing
+
+note as note
+ <b>frameValue</b> contains
+ frame data shared
+ between processors using Locks
+end note
+
+class VideoProcessor <<main>>{
+    + capture(ip, port, size: (w, h), fps)
+    + record(ip, port, size: (w, h), fps)
+
+    + frameValue: Value(np.array)
+    + frameReadLock: Lock
+}
+
+abstract class FrameProcessor <<process>>{
+    + frameValue: Value(np.array)
+}
+
+class CueProcessor <<process>> {
+    + cues: Cue[]
+}
+
+class BallProcessor <<process>> {
+    + balls: Ball[]
+}
+
+class OutputModule <<process>> {
+    ballsQueue: Queue(Ball[])
+    cuesQueue: Queue(Cue[])
+}
+
+BallProcessor ..> OutputModule
+CueProcessor ..> OutputModule 
+
+FrameProcessor <|--- BallProcessor
+FrameProcessor <|--- CueProcessor
+
+class Process <<multiprocessing>>
+
+
+VideoProcessor *--> CueProcessor
+VideoProcessor *--> BallProcessor
+VideoProcessor *---> OutputModule
+
+FrameProcessor -|> Process
+
+class Cue {
+    + positionStart: Vector2i
+    + positionEnd: Vector2i
+    + player: Player
+}
+
+class Ball {
+    + number: int
+    + position: Vector2i
+    + type: Enum('SOLID', 'STRIPED')
+}
+
+class PoolState {
+    + balls: Ball[]
+    + cues: Cue[]
+}
+
+
+cloud WebSocket
+
+OutputModule *--> PoolState
+OutputModule ..> WebSocket : Sends PoolState to >
+
+CueProcessor "2" *--> "1" Cue
+BallProcessor "16" *--> "1" Ball
+
+@enduml
