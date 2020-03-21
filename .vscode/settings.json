@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/damian_koper/.virtualenvs/opencvtest-p_CA-LTl/bin/python",
+    "python.pythonPath": "/home/damian_koper/.virtualenvs/ripo-sALwwkae/bin/python",
     "python.linting.pylintArgs": [
         "--extension-pkg-whitelist=cv2"
     ],

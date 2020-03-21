@@ -22,5 +22,8 @@ export const poolData = {
     ...generateBalls(colors, BallType.SOLID),
     ...generateBalls(["black"], BallType.SOLID),
     ...generateBalls(colors, BallType.STRIPED)
-  ]
+  ],
+  cue: {
+    width: 10
+  }
 };

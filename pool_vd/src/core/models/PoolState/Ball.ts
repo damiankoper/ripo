@@ -1,12 +1,22 @@
-import { Vector2i } from "./Vector2i";
+import { Vector2i, IVector2i } from "./Vector2i";
 
 export enum BallType {
   SOLID = "SOLID",
   STRIPED = "STRIPED"
 }
 
-export class Ball {
+export interface IBall {
+  number: number;
+  position: IVector2i;
+  type: BallType;
+}
+export class Ball implements IBall {
+  constructor(object: IBall) {
+    this.number = object.number;
+    this.type = object.type;
+    this.position = new Vector2i(object.position.x, object.position.y);
+  }
   number = 0;
-  position: Vector2i = { x: 0, y: 0 };
+  position: Vector2i = new Vector2i(0, 0);
   type: BallType = BallType.SOLID;
 }

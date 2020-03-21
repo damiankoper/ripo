@@ -12,7 +12,9 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@types/color": "^3.0.1",
     "@types/lodash": "^4.14.149",
+    "color": "^3.1.2",
     "core-js": "^3.6.4",
     "konva": "^4.2.0",
     "lodash": "^4.17.15",
