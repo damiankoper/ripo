@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 opencv-python = "*"
+python-socketio = "*"
+eventlet = "*"
 
 [dev-packages]
 pylint = "*"
