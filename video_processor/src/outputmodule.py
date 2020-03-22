@@ -10,7 +10,9 @@ class OutputModule(Process):
     def run(self):
         while(1):
             if not self.ballsQueue.empty():
-                pass
+                something = self.ballsQueue.get()
+                for i in something:
+                    print(i.number, i.position, i.type)
             if not self.cueQueue.empty():
                 pass
 

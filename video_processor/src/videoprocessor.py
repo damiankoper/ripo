@@ -7,6 +7,8 @@ from ballprocessor import BallProcessor
 from cueprocessor import CueProcessor
 from outputmodule import OutputModule
 import ctypes
+import cProfile
+import time
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 
@@ -20,7 +22,8 @@ class VideoProcessor:
 
         self.frameReadLock = Lock()
 
-        self.sharedArray = RawArray(np.ctypeslib.as_ctypes_type(np.uint8), 1280*720*3)
+        self.sharedArray = RawArray(np.ctypeslib.as_ctypes_type(np.uint8), 1280*720*3)  
+        self.frameValue = np.frombuffer(self.sharedArray, dtype=np.uint8).reshape(1280*720*3)
 
         self.ballProcess = BallProcessor(self.ballsQueue, self.sharedArray, self.frameReadLock)
         self.cueProcess = CueProcessor(self.cueQueue, self.sharedArray, self.frameReadLock)
@@ -35,13 +38,15 @@ class VideoProcessor:
         try:
 
             self.vcap = cv2.VideoCapture("udp://"+ip+":"+port, cv2.CAP_FFMPEG)
-
+            
             while(1):
+                ret, frame = self.vcap.read()
+                if frame is not None:
 
-                with self.frameReadLock:
-                    ret, frame = self.vcap.read()
-                    self.sharedArray = np.ctypeslib.as_ctypes(frame)
-
+                    with self.frameReadLock:
+                        np.copyto(self.frameValue, frame.flatten())
+            
+        
         except KeyboardInterrupt:
             self.cleanup()
             self.vcap.release()
@@ -62,4 +67,3 @@ class VideoProcessor:
 if __name__ == "__main__":
     vp = VideoProcessor()
     vp.capture("0.0.0.0", "8444")
-
