@@ -6,9 +6,11 @@
       </v-fast-layer>
       <v-layer>
         <ball v-for="ball in balls" :key="ball.number" :ball="ball" />
+        <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>
-    {{ balls }}
+    {{ balls }}<br />
+    {{ cues }}
   </div>
 </template>
 
@@ -16,42 +18,51 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { poolData } from "../core/models/PoolData";
 import Ball from "./Ball.vue";
+import Cue from "./Cue.vue";
 import { PoolState } from "../core/models/PoolState/PoolState";
 import Konva from "konva";
 import pool from "../assets/pool.svg";
 import { Vector2i } from "../core/models/PoolState/Vector2i";
-import _ from "lodash";
 @Component({
   name: "PoolStage",
-  components: { Ball }
+  components: { Ball, Cue }
 })
 export default class PoolStage extends Vue {
   @Prop({ type: Object }) poolState!: PoolState;
-
   backgroundImage = new Image(100, 100);
   stageWidth = 1920;
 
-  readonly leftCorner: Vector2i = {
-    x: 128,
-    y: 112
-  };
+  readonly leftCorner: Vector2i = new Vector2i(128, 112);
+
+  get stageHeight() {
+    return this.stageWidth * poolData.table.ratio;
+  }
+  readonly shift = this.leftCorner.add(
+    new Vector2i(-poolData.ball.size / 2, -poolData.ball.size / 2)
+  );
+  readonly intBase = this.leftCorner
+    .multiply(-2)
+    .add(new Vector2i(this.stageWidth, this.stageHeight));
+
   get balls() {
     return this.poolState.balls.map(ball => {
-      ball = _.cloneDeep(ball);
-      const shift = {
-        x: -poolData.ball.size / 2 + this.leftCorner.x,
-        y: -poolData.ball.size / 2 + this.leftCorner.y
-      };
+      ball.position = ball.position.clone();
 
-      const intBase = {
-        x: this.stageWidth - 2 * this.leftCorner.x,
-        y: this.stageHeight - 2 * this.leftCorner.y
-      };
-      console.log(shift, intBase);
-
-      ball.position.x = ball.position.x * intBase.x + shift.x;
-      ball.position.y = ball.position.y * intBase.y + shift.y;
+      ball.position = ball.position.multiply(this.intBase).add(this.shift);
       return ball;
+    });
+  }
+
+  get cues() {
+    return this.poolState.cues.map(cue => {
+      cue.positionStart = cue.positionStart.clone();
+      cue.positionEnd = cue.positionEnd.clone();
+
+      cue.positionStart = cue.positionStart
+        .multiply(this.intBase)
+        .add(this.shift);
+      cue.positionEnd = cue.positionEnd.multiply(this.intBase).add(this.shift);
+      return cue;
     });
   }
 
@@ -61,10 +72,6 @@ export default class PoolStage extends Vue {
       width: this.stageWidth,
       height: this.stageWidth * poolData.table.ratio
     };
-  }
-
-  get stageHeight() {
-    return this.stageWidth * poolData.table.ratio;
   }
 
   get stageConfig() {
