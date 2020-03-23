@@ -16,4 +16,5 @@ class QueueWatcher(Thread):
             value = self.queue.get()
             with self.lock:
                 self.list[:] = value
+                self.server.poolState.balls = self.list
             self.server.emitPoolState()
