@@ -6,9 +6,13 @@ import numpy as np
 
 from .FrameProcessor import FrameProcessor
 from ..pool_state.Ball import Ball, BallType
+from ..pool_state.Vector2i import Vector2i
 
 
 class BallProcessor(FrameProcessor):
+
+    def normalize_coordinates(self, coordinates: (int, int)):
+        return Vector2i(coordinates[0]/self.width, coordinates[1]/self.height)
 
     def run(self):
         while(1):
@@ -63,5 +67,5 @@ class BallProcessor(FrameProcessor):
                         print(time_e-time_s)
 
                         if circles is not None:
-                            balls = [Ball(1, (i[0], i[1]), BallType.SOLID.name) for i in circles[0]]
+                            balls = [Ball(1, self.normalize_coordinates((i[0], i[1])), BallType.SOLID.name) for i in circles[0]]
                             self.queue.put(balls)
