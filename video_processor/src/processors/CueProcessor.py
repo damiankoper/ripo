@@ -1,4 +1,4 @@
-from frameprocessor import FrameProcessor
+from .FrameProcessor import FrameProcessor
 
 class CueProcessor(FrameProcessor):
   

@@ -1,14 +1,12 @@
+import time
+from enum import Enum
+
 import cv2
 import numpy as np
-from frameprocessor import FrameProcessor
-from ball import Ball
-import numpy as np
-from enum import Enum
-import time
 
-class Ball_type(Enum):
-    SIGNED = 1
-    STRIPED = 2
+from .FrameProcessor import FrameProcessor
+from ..pool_state.Ball import Ball, BallType
+
 
 class BallProcessor(FrameProcessor):
 
@@ -16,12 +14,12 @@ class BallProcessor(FrameProcessor):
         while(1):
             with self.lock:
                 frame = np.frombuffer(self.frameValue, dtype=np.uint8)
-                frame = frame.reshape(720, 1280, 3)
+                frame = frame.reshape(self.height, self.width, 3)
             if not np.all(frame == 0):
                     while(1):
                         with self.lock:
                             frame = np.frombuffer(self.frameValue, dtype=np.uint8)
-                            frame = frame.reshape(720, 1280, 3)
+                            frame = frame.reshape(self.height, self.width, 3)
 
                         time_s = time.perf_counter()
 
@@ -65,5 +63,5 @@ class BallProcessor(FrameProcessor):
                         print(time_e-time_s)
 
                         if circles is not None:
-                            balls = [Ball(1, (i[0], i[1]), Ball_type.SIGNED.name) for i in circles[0]]
+                            balls = [Ball(1, (i[0], i[1]), BallType.SOLID.name) for i in circles[0]]
                             self.queue.put(balls)
