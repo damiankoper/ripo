@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/damian_koper/.virtualenvs/ripo-sALwwkae/bin/python",
+    "python.pythonPath": "/home/mateusz/.local/share/virtualenvs/video_processor-hohldExK/bin/python",
     "python.linting.pylintArgs": [
         "--extension-pkg-whitelist=cv2"
     ],
