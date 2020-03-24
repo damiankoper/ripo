@@ -5,7 +5,7 @@
         <v-image :config="backgroundConfig" />
       </v-fast-layer>
       <v-layer>
-        <ball v-for="ball in balls" :key="ball.number" :ball="ball" />
+        <ball v-for="(ball, nth) in balls" :key="nth" :ball="ball" />
         <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>

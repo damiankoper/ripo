@@ -9,6 +9,7 @@ import socketio
 from .QueueWatcher import QueueWatcher
 from ..pool_state.PoolState import PoolState
 from .WebsocketServer import WebsocketServer
+import asyncio
 
 
 class OutputModule(Process):
@@ -24,6 +25,7 @@ class OutputModule(Process):
         self.port = port
 
     def run(self):
+        asyncio.get_child_watcher()
         websocketServer = WebsocketServer(
             self.poolState, self.port, self.poolStateLock)
         ballQueueWatcher = QueueWatcher(

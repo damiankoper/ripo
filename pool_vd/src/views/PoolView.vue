@@ -24,6 +24,8 @@ export default class PoolView extends Vue {
 
   @Socket("poolState")
   onPoolState(poolState: IPoolState) {
+    console.log(poolState);
+
     this.poolDeductionCore.addPoolState(new PoolState(poolState));
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }
