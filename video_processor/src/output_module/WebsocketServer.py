@@ -5,40 +5,36 @@ import eventlet
 import socketio
 from flask import Flask
 import logging
+from aiohttp import web
+import asyncio
+# from ..pool_state.PoolState import PoolState
 
-#from ..pool_state.PoolState import PoolState
 
-
-class WebsocketServer(Thread):
+class WebsocketServer():
     def __init__(self, poolState, port, lock: Lock):
         Thread.__init__(self)
 
         self.port = port
         self.lock = lock
-        self.sio = socketio.Server(
-            cors_allowed_origins="*", async_mode='threading')
-        self.app = Flask(__name__)
-        self.app.wsgi_app = socketio.WSGIApp(self.sio, self.app.wsgi_app)
-        log = logging.getLogger('werkzeug')
-        log.setLevel(logging.ERROR)
+        self.sio = socketio.AsyncServer(
+            async_mode='aiohttp', cors_allowed_origins="*")
+        self.app = web.Application()
+        self.sio.attach(self.app)
+
         self.poolState = poolState
 
         @self.sio.event
         def connect(sid, environ):
-            print("Client connected: ", sid)
+            print("connect ", sid)
 
         @self.sio.event
         def disconnect(sid):
-            print("Client disconnected: ", sid)
-
-        @self.sio.event
-        def dupka(sid, environ):
-            print("dupka: ", sid)
-            self.sio.emit('poolState', self.poolState.toJson())
+            print('disconnect ', sid)
 
     def run(self):
-        self.app.run(threaded=True, host='0.0.0.0', port=self.port)
+        web.run_app(self.app, port=self.port)
 
-    def emitPoolState(self):
+    async def emitPoolState(self):
         self.poolState.sentAt = time.time()
-        self.sio.emit('poolState', self.poolState.toJson())
+        # print("Emitting")
+        await self.sio.emit('poolState', self.poolState.toJson())

@@ -48,7 +48,8 @@ class VideoProcessor:
             self.ballsQueue, self.cueQueue, port)
 
         self.ballProcess.start()
-        self.cueProcess.start()
+        # Póki nie ma implementacji nie może kręcić się na sucho
+        # self.cueProcess.start()
         self.outputModuleProcess.start()
 
         try:

@@ -1,3 +1,4 @@
+from aiohttp import web
 import json
 import time
 from multiprocessing import Process, Queue
@@ -25,19 +26,22 @@ class OutputModule(Process):
         self.port = port
 
     def run(self):
-        asyncio.get_child_watcher()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         websocketServer = WebsocketServer(
             self.poolState, self.port, self.poolStateLock)
         ballQueueWatcher = QueueWatcher(
-            self.ballsQueue, self.poolState.balls, self.poolStateLock, websocketServer)
+            self.ballsQueue, self.poolState.balls, self.poolStateLock, websocketServer,  loop)
 
         # cueQueueWatcher = QueueWatcher(
         #    self.cueQueue, self.poolState.cues, self.poolStateLock, websocketServer)
 
-        websocketServer.start()
         ballQueueWatcher.start()
-        # cueQueueWatcher.start()
 
-        websocketServer.join()
+        websocketServer.run()
+        websocketServer.app.shutdown()
+        websocketServer.app.cleanup()
+        # cueQueueWatcher.start()
         ballQueueWatcher.join()
         # cueQueueWatcher.join()
