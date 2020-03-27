@@ -4,7 +4,7 @@ import ctypes
 import os
 import sys
 import time
-from multiprocessing import Array, Lock, Queue, RawArray, Value
+from multiprocessing import Array, Lock, Queue, RawArray, Value, JoinableQueue
 
 import cv2
 import numpy as np
@@ -21,6 +21,8 @@ class VideoProcessor:
     def __init__(self, capturePort=8444):
         self.ballsQueue = Queue()
         self.cueQueue = Queue()
+
+        self.throttle = JoinableQueue()
 
         self.capturePort = capturePort
 
@@ -41,15 +43,15 @@ class VideoProcessor:
             sharedArray, dtype=np.uint8).reshape(width*height*3)
 
         self.ballProcess = BallProcessor(
-            self.ballsQueue, sharedArray, self.frameReadLock, width, height)
+            self.ballsQueue, self.throttle, sharedArray, self.frameReadLock, width, height)
         self.cueProcess = CueProcessor(
-            self.cueQueue, sharedArray, self.frameReadLock, width, height)
+            self.cueQueue, self.throttle, sharedArray, self.frameReadLock, width, height)
         self.outputModuleProcess = OutputModule(
             self.ballsQueue, self.cueQueue, port)
 
         self.ballProcess.start()
         # Póki nie ma implementacji nie może kręcić się na sucho
-        # self.cueProcess.start()
+        #self.cueProcess.start()
         self.outputModuleProcess.start()
 
         try:
@@ -57,13 +59,23 @@ class VideoProcessor:
                 "udp://0.0.0.0:"+str(self.capturePort), cv2.CAP_FFMPEG)
 
             while(1):
+
                 ret, frame = self.vcap.read()
 
                 if frame is not None:
                     with self.frameReadLock:
                         np.copyto(frameValue, frame.flatten())
 
-        except KeyboardInterrupt:
+
+                self.throttle.get()
+                self.throttle.task_done()
+
+                #do włączenia po odpaleniu CP
+                #self.throttle.get()
+                #self.throttle.task_done()
+
+
+        except (KeyboardInterrupt, SystemExit):
             self.terminate()
             self.cleanup()
             sys.exit(0)
@@ -86,7 +98,7 @@ class VideoProcessor:
                         self.cleanup()
                         break
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
             self.cleanup()
             sys.exit(0)
 
@@ -100,8 +112,8 @@ class VideoProcessor:
         self.ballProcess.terminate()
         self.ballProcess.join()
 
-        self.cueProcess.terminate()
-        self.cueProcess.join()
+        #self.cueProcess.terminate()
+        #self.cueProcess.join()
 
         self.outputModuleProcess.terminate()
         self.outputModuleProcess.join()
