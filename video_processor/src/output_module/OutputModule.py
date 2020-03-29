@@ -15,10 +15,15 @@ import asyncio
 
 class OutputModule(Process):
 
-    def __init__(self, ballsQueue: Queue, cueQueue: Queue, port=8888):
+    def __init__(self, ballsQueue: Queue, cueQueue: Queue, eventQueueVP: Queue,
+    eventQueueBP: Queue, eventQueueCP: Queue, port=8888):
         Process.__init__(self)
         self.ballsQueue = ballsQueue
         self.cueQueue = cueQueue
+
+        self.eventQueueVP = eventQueueVP
+        self.eventQueueBP = eventQueueBP
+        self.eventQueueCP = eventQueueCP
 
         self.poolStateLock = Lock()
         self.poolState = PoolState()
@@ -30,7 +35,8 @@ class OutputModule(Process):
         asyncio.set_event_loop(loop)
 
         websocketServer = WebsocketServer(
-            self.poolState, self.port, self.poolStateLock)
+            self.poolState, self.port, self.poolStateLock, self.eventQueueVP, 
+            self.eventQueueBP, self.eventQueueCP)
         ballQueueWatcher = QueueWatcher(
             self.ballsQueue, self.poolState.balls, self.poolStateLock, websocketServer,  loop)
 

@@ -1,5 +1,6 @@
 import argparse
 from .processors.VideoProcessor import VideoProcessor
+from .config.VideoConfig import VideoConfig
 
 if __name__ == "__main__":
 
@@ -20,12 +21,16 @@ if __name__ == "__main__":
                         required=False, type=int, default=30)
     args = parser.parse_args()
 
-    vp = VideoProcessor(args.port)
-    if args.capture:
-        vp.capture(args.width, args.height, args.capture)
 
+    if args.capture: 
+        vc = VideoConfig(args.width, args.height, args.capture, args.port)
+        vp = VideoProcessor(vc)
+        vp.capture()
     if args.record:
         if args.fps:
-            vp.record(args.width, args.height, args.record, args.fps)
+            vc = VideoConfig(args.width, args.height, None, args.port, args.record, args.fps)
         else:
-            vp.record(args.width, args.height, args.record)
+            vc = VideoConfig(args.width, args.height, None, args.port, args.record)
+
+        vp = VideoProcessor(vc)
+        vp.record()
