@@ -46,7 +46,7 @@ class BallProcessor(FrameProcessor):
                 for n in circles[0]:
                     cv2.circle(frame, (n[0], n[1]), n[2], (255, 0, 0))
 
-            cv2.imshow('VIDEO', frame)
+            cv2.imshow('BP: DETECTED', frame)
             c = cv2.waitKey(1)
 
             if circles is not None:

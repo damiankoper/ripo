@@ -47,7 +47,7 @@ class VideoProcessor:
         self.cueProcess = None
         self.outputModuleProcess = None
 
-        self.initFrameProcessing = None
+        self.initFrameProcessing: InitialFrameProcessing = None
 
     def capture(self):
 
@@ -85,9 +85,17 @@ class VideoProcessor:
 
                 ret, frame = self.vcap.read()
 
-                if frame is not None:
 
-                    frame, w, h = self.initFrameProcessing.cut(frame)
+                if frame is not None:
+                    cv2.imshow('VP: ORIGINAL', frame)
+                    c = cv2.waitKey(1)
+
+                    self.initFrameProcessing.on_frame(frame)
+                    self.initFrameProcessing.display_components(False)
+
+                    w, h = self.initFrameProcessing.get_pool_size()
+                    frame = self.initFrameProcessing.get_warped_masked_frame()
+
                     frame = frame.flatten()
                     frame = np.resize(frame, self.config.get_shape())
 

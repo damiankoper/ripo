@@ -8,6 +8,8 @@ opencv-python = "*"
 python-socketio = "*"
 eventlet = "*"
 flask = "*"
+aiohttp = "*"
+autopep8 = "*"
 
 [dev-packages]
 pylint = "*"
