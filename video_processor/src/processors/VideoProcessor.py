@@ -80,9 +80,8 @@ class VideoProcessor:
         try:
             self.vcap = cv2.VideoCapture(
                 "udp://0.0.0.0:"+str(self.config.udpPort), cv2.CAP_FFMPEG)
-
             while(1):
-
+                self.vcap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
                 ret, frame = self.vcap.read()
 
 

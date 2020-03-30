@@ -10,7 +10,7 @@ class InitialFrameProcessing:
         # Config
         self.averaging_time = averaging_time
         self.boundaries = boundaries
-        self.mask_tredhold = 10
+        self.mask_tredhold = 20
 
         # Avg frame
         self.avg_frame_buffer = None
@@ -64,7 +64,6 @@ class InitialFrameProcessing:
             [self.maxWidth - 1, 0],
             [self.maxWidth - 1, self.maxHeight - 1],
         ])
-
         self.M = cv2.getPerspectiveTransform(rect, dest)
 
     def on_frame(self, frame):
@@ -85,9 +84,11 @@ class InitialFrameProcessing:
 
     def _mask(self, frame):
         frameSubtracted = cv2.cvtColor(cv2.subtract(
-            ~frame, ~self.avg_frame), cv2.COLOR_BGR2GRAY) + cv2.cvtColor(cv2.subtract(
+            ~frame, ~self.avg_frame) + cv2.subtract(
                 frame, self.avg_frame), cv2.COLOR_BGR2GRAY)
-        frameSubtracted = cv2.blur(frameSubtracted, (5,5))
+        #frameSubtracted = cv2.blur(frameSubtracted, (5,5))
+        cv2.imshow('IFP: MASK PRE TRESHOLD', frameSubtracted)
+        c = cv2.waitKey(1)
         ret, frameKeyedMask = cv2.threshold(
             frameSubtracted, self.mask_tredhold, 255, cv2.THRESH_BINARY)
 
