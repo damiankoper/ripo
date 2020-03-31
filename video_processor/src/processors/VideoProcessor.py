@@ -51,79 +51,110 @@ class VideoProcessor:
 
     def capture(self):
 
-        self.initFrameProcessing = InitialFrameProcessing(self.config.initTime, self.config.boundaries)
+        self.initFrameProcessing = InitialFrameProcessing(
+            self.config.initTime, self.config.pool_color_range)
 
         frameWidth = Value('i', 1)
         frameHeight = Value('i', 1)
 
-        ballConfig = BallConfig(self.config.width, self.config.height, frameWidth, frameHeight)
-        cueConfig = CueConfig(self.config.width, self.config.height, frameWidth, frameHeight)
+        ballConfig = BallConfig(
+            self.config.width, self.config.height, frameWidth, frameHeight)
+        cueConfig = CueConfig(
+            self.config.width, self.config.height, frameWidth, frameHeight)
 
-        sharedArray = RawArray(
+        sharedFrame = RawArray(
             np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_shape())
-        frameValue = np.frombuffer(
-            sharedArray, dtype=np.uint8).reshape(self.config.get_shape())
+        sharedAvgFrame = RawArray(
+            np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_shape())
+        numpyFrame = np.frombuffer(
+            sharedFrame, dtype=np.uint8).reshape(self.config.get_shape())
+        numpyAvgFrame = np.frombuffer(
+            sharedAvgFrame, dtype=np.uint8).reshape(self.config.get_shape())
 
         self.ballProcess = BallProcessor(
-            self.ballsQueue, self.throttle, sharedArray, self.frameReadLock, ballConfig, self.eventQueueBP)
-        self.cueProcess = CueProcessor(
-            self.cueQueue, self.throttle, sharedArray, self.frameReadLock, cueConfig, self.eventQueueCP)
-        self.outputModuleProcess = OutputModule(
-            self.ballsQueue, self.cueQueue, self.eventQueueVP, self.eventQueueBP, self.eventQueueCP, self.config.webPort)
+            self.ballsQueue,
+            self.throttle,
+            sharedFrame,
+            sharedAvgFrame,
+            self.frameReadLock,
+            ballConfig,
+            self.eventQueueBP
+        )
 
+        self.cueProcess = CueProcessor(
+            self.cueQueue,
+            self.throttle,
+            sharedFrame,
+            sharedAvgFrame,
+            self.frameReadLock,
+            cueConfig,
+            self.eventQueueCP
+        )
+
+        self.outputModuleProcess = OutputModule(
+            self.ballsQueue,
+            self.cueQueue,
+            self.eventQueueVP,
+            self.eventQueueBP,
+            self.eventQueueCP,
+            self.config.webPort
+        )
 
         self.ballProcess.start()
         # Póki nie ma implementacji nie może kręcić się na sucho
-        #self.cueProcess.start()
+        # self.cueProcess.start()
         self.outputModuleProcess.start()
 
         try:
             self.vcap = cv2.VideoCapture(
                 "udp://0.0.0.0:"+str(self.config.udpPort), cv2.CAP_FFMPEG)
+            self.vcap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+
             while(1):
-                self.vcap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
                 ret, frame = self.vcap.read()
-
-
-                if frame is not None:
+                if ret:
                     cv2.imshow('VP: ORIGINAL', frame)
-                    c = cv2.waitKey(1)
 
                     self.initFrameProcessing.on_frame(frame)
-                    self.initFrameProcessing.display_components(False)
+                    self.initFrameProcessing.display_components()
 
                     w, h = self.initFrameProcessing.get_pool_size()
-                    frame = self.initFrameProcessing.get_warped_masked_frame()
 
-                    frame = frame.flatten()
+                    frame = self.initFrameProcessing.get_warped_frame().flatten()
                     frame = np.resize(frame, self.config.get_shape())
 
-                    #chwilowe, bo wywala się gdy podczas wykrywania stołu jest ten fragment nagrania bez stołu
-                    if w < 500 or h < 200:
+                    avg_frame = self.initFrameProcessing.get_avg_frame().flatten()
+                    avg_frame = np.resize(avg_frame, self.config.get_shape())
+
+                    # chwilowe, bo wywala się gdy podczas wykrywania stołu jest ten fragment nagrania bez stołu
+                    if w < 10 or h < 10:
                         continue
                     with self.frameReadLock:
                         frameWidth.value = w
                         frameHeight.value = h
-                        np.copyto(frameValue, frame.flatten())
-
+                        np.copyto(numpyFrame, frame)
+                        np.copyto(numpyAvgFrame, avg_frame)
 
                     self.throttle.get()
                     self.throttle.task_done()
 
-                    #do włączenia po odpaleniu CP
-                    #self.throttle.get()
-                    #self.throttle.task_done()
+                # Main wait to refresh windows
+                c = cv2.waitKey(1)
 
+                # do włączenia po odpaleniu CP
+                # self.throttle.get()
+                # self.throttle.task_done()
 
         except (KeyboardInterrupt, SystemExit):
+            print("VP: Interrupt")
             self.terminate()
             self.cleanup()
-            sys.exit(0)
+        print("VP: Exit")
 
     def record(self):
         try:
             self.vrec = cv2.VideoWriter(
-                self.config.recordingPath, cv2.VideoWriter_fourcc(*'MP4V'), 
+                self.config.recordingPath, cv2.VideoWriter_fourcc(*'MP4V'),
                 self.config.recordingFps, (self.config.width, self.config.height))
 
             self.vcap = cv2.VideoCapture(
@@ -150,7 +181,6 @@ class VideoProcessor:
             if self.event.eventType is "resetInit":
                 self.initFrameProcessing.averaging_time = self.config.initTime
 
-
     def cleanup(self):
         if self.vrec is not None:
             self.vrec.release()
@@ -161,8 +191,8 @@ class VideoProcessor:
         self.ballProcess.terminate()
         self.ballProcess.join()
 
-        #self.cueProcess.terminate()
-        #self.cueProcess.join()
-
         self.outputModuleProcess.terminate()
         self.outputModuleProcess.join()
+
+        # self.cueProcess.terminate()
+        # self.cueProcess.join()

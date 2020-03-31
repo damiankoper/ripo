@@ -14,12 +14,15 @@ class QueueWatcher(Thread):
 
         self.loop = loop
 
+        self.daemon = True
+
     def run(self):
         asyncio.set_event_loop(self.loop)
         self.loop.create_task(self._run())
 
     async def _run(self):
         while 1:
+            hehe = 2
             value = self.queue.get()
             with self.lock:
                 self.list[:] = value

@@ -17,8 +17,14 @@ class BallProcessor(FrameProcessor):
             self.event = self.eventQueue.get_nowait()
 
             ####
-
     def run(self):
+        try:
+            self._run()
+        except(KeyboardInterrupt, SystemExit):
+            print("BP: Interrupt")
+        print("BP: Exit")
+
+    def _run(self):
         while(1):
             self.throttle.put(1)
 
@@ -28,6 +34,7 @@ class BallProcessor(FrameProcessor):
 
             with self.lock:
                 frame = np.frombuffer(self.frameValue, dtype=np.uint8)
+                frameAvg = np.frombuffer(self.frameAvgValue, dtype=np.uint8)
 
                 self.width = self.config.afterCutWidth.value
                 self.height = self.config.afterCutHeight.value
@@ -35,6 +42,8 @@ class BallProcessor(FrameProcessor):
             frame = np.resize(frame, self.width*self.height*3)
             frame = frame.reshape(self.height, self.width, 3)
 
+            frameAvg = np.resize(frameAvg, self.width*self.height*3)
+            frameAvg = frameAvg.reshape(self.height, self.width, 3)
                 
 
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -47,7 +56,8 @@ class BallProcessor(FrameProcessor):
                     cv2.circle(frame, (n[0], n[1]), n[2], (255, 0, 0))
 
             cv2.imshow('BP: DETECTED', frame)
-            c = cv2.waitKey(1)
+            cv2.imshow('BP: AVG FRAME', frameAvg)
+            cv2.waitKey(1)
 
             if circles is not None:
                 balls = []

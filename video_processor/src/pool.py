@@ -11,8 +11,8 @@ imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 width = image.shape[1]
 height = image.shape[0]
 
-# define the list of boundaries
-boundaries = [
+# define the list of pool_color_range
+pool_color_range = [
     ([70, 150, 50], [95, 255, 220]),
 ]
 
@@ -21,9 +21,9 @@ boundaries = [
 #cv2.resizeWindow('image', 1280, 720)
 
 
-# loop over the boundaries
-for (lower, upper) in boundaries:
-    # create NumPy arrays from the boundaries
+# loop over the pool_color_range
+for (lower, upper) in pool_color_range:
+    # create NumPy arrays from the pool_color_range
     lower = np.array(lower, dtype="uint8")
     upper = np.array(upper, dtype="uint8")
 

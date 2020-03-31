@@ -2,13 +2,23 @@ from multiprocessing import Process, Queue, Lock, RawArray, JoinableQueue, Value
 from ..config.GlobalConfig import FrameProcessingConfig
 from ..pool_state.Vector2i import Vector2i
 
+
 class FrameProcessor(Process):
-    
-    def __init__(self, queue: Queue, throttle: JoinableQueue, frame: RawArray, 
-    lock: Lock, config: FrameProcessingConfig, eventQueue: Queue()):
+
+    def __init__(
+        self,
+        queue: Queue,
+        throttle: JoinableQueue,
+        frame: RawArray,
+        avgFrame: RawArray,
+        lock: Lock,
+        config: FrameProcessingConfig,
+        eventQueue: Queue()
+    ):
         Process.__init__(self)
         self.queue = queue
         self.frameValue = frame
+        self.frameAvgValue = avgFrame
         self.lock = lock
         self.throttle = throttle
         self.config = config
@@ -22,5 +32,4 @@ class FrameProcessor(Process):
 
     def run(self):
         pass
-
 
