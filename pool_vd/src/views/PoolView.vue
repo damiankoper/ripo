@@ -1,11 +1,19 @@
 <template>
+
   <v-container>
+    <v-navigation-drawer
+      v-model="syncedOptionsVisible"
+      absolute
+      right
+      temporary
+    >
+    </v-navigation-drawer>
     <pool-stage :poolState="deducedPoolState" />
   </v-container>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, PropSync } from "vue-property-decorator";
 import PoolStage from "../components/PoolStage.vue";
 import { PoolDeductionCore } from "../core/PoolDeductionCore";
 import { PoolState, IPoolState } from "../core/models/PoolState/PoolState";
@@ -22,10 +30,11 @@ export default class PoolView extends Vue {
   poolDeductionCore: PoolDeductionCore = new PoolDeductionCore();
   deducedPoolState: PoolState = poolState;
 
+  @PropSync("optionsVisible", { type: Boolean })
+  syncedOptionsVisible!: boolean;
+
   @Socket("poolState")
   onPoolState(poolState: IPoolState) {
-    console.log(poolState);
-
     this.poolDeductionCore.addPoolState(new PoolState(poolState));
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }
