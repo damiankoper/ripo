@@ -13,13 +13,16 @@
       </div>
       <v-toolbar-title>Pool detection</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click="optionsVisible=!optionsVisible">
+      <v-btn icon @click="optionsVisible = !optionsVisible">
         <v-icon>mdi-dots-vertical</v-icon>
       </v-btn>
     </v-app-bar>
 
     <v-content style="overflow-x: hidden">
-      <PoolView :optionsVisible="optionsVisible"/>
+      <PoolView
+        :optionsVisible="optionsVisible"
+        @update:optionsVisible="v => (optionsVisible = v)"
+      />
     </v-content>
   </v-app>
 </template>
@@ -33,6 +36,6 @@ import PoolView from "./views/PoolView.vue";
   name: "App"
 })
 export default class App extends Vue {
-  optionsVisible = false;
+  optionsVisible = true;
 }
 </script>
