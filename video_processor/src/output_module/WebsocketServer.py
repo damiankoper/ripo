@@ -8,8 +8,8 @@ import logging
 from aiohttp import web
 import asyncio
 from multiprocessing import Queue
-from ..events.SetInitConfig import SetInitConfig
-from ..events.ResetInit import ResetInit
+from ..events.SetInitConfigEvent import SetInitConfigEvent
+from ..events.ResetInitEvent import ResetInitEvent
 from ..events.Event import Event
 # from ..pool_state.PoolState import PoolState
 
@@ -31,25 +31,8 @@ class WebsocketServer():
 
         self.poolState = poolState
 
-        @self.sio.event
-        def connect(sid, environ):
-            print("connect ", sid)
-
-        @self.sio.event
-        def resetInit(sid):
-            rInit = ResetInit("resetInit")
-            self.loadToQueue(rInit)
-
-        @self.sio.event
-        def setInitConfig(sid, data):
-            data = json.load(data)
-            setInitConf = SetInitConfig("setInitConfig", data["time"])
-            self.loadToQueue(setInitConf)
-
-        @self.sio.event
-        def disconnect(sid):
-            print('disconnect ', sid)
-
+        self.initEventWatcher()
+      
     def loadToQueue(self, event: Event):
         self.eventQueueVP.put(event)
         self.eventQueueBP.put(event)
@@ -57,8 +40,29 @@ class WebsocketServer():
 
     def run(self):
         web.run_app(self.app, port=self.port)
+     
 
     async def emitPoolState(self):
         self.poolState.sentAt = time.time()
         # print("Emitting")
         await self.sio.emit('poolState', self.poolState.toJson())
+
+    def initEventWatcher(self):
+        @self.sio.event
+        def connect(sid, environ):
+            print("connect ", sid)
+
+        @self.sio.event
+        def resetInit(sid):
+            rInit = ResetInitEvent("resetInit")
+            self.loadToQueue(rInit)
+
+        @self.sio.event
+        def setInitConfig(sid, data):
+            data = json.load(data)
+            setInitConf = SetInitConfigEvent("setInitConfig", data["time"])
+            self.loadToQueue(setInitConf)
+
+        @self.sio.event
+        def disconnect(sid):
+            print('disconnect ', sid)

@@ -1,5 +1,5 @@
 from .Event import Event
 
-class ResetInit(Event):
+class ResetInitEvent(Event):
     pass
         
