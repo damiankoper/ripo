@@ -9,7 +9,7 @@ from aiohttp import web
 import asyncio
 from multiprocessing import Queue
 from ..events.SetInitConfigEvent import SetInitConfigEvent
-from ..events.ResetInitEvent import ResetInitEvent
+from ..events.RerunInitRequestEvent import RerunInitRequestEvent
 from ..events.Event import Event
 # from ..pool_state.PoolState import PoolState
 
@@ -31,7 +31,7 @@ class WebsocketServer():
 
         self.poolState = poolState
 
-        self.initEventWatcher()
+        self.initEventWatchers()
       
     def loadToQueue(self, event: Event):
         self.eventQueueVP.put(event)
@@ -47,22 +47,25 @@ class WebsocketServer():
         # print("Emitting")
         await self.sio.emit('poolState', self.poolState.toJson())
 
-    def initEventWatcher(self):
+    def initEventWatchers(self):
         @self.sio.event
         def connect(sid, environ):
             print("connect ", sid)
 
         @self.sio.event
-        def resetInit(sid):
-            rInit = ResetInitEvent("resetInit")
-            self.loadToQueue(rInit)
-
-        @self.sio.event
         def setInitConfig(sid, data):
             data = json.load(data)
             setInitConf = SetInitConfigEvent("setInitConfig", data["time"])
-            self.loadToQueue(setInitConf)
+            self.handleEvent(setInitConf)
+
+        @self.sio.event
+        def rerunInitRequest(sid):
+            self.handleEvent(RerunInitRequestEvent())
 
         @self.sio.event
         def disconnect(sid):
             print('disconnect ', sid)
+
+    def handleEvent(self, event):
+        print("OM: ", event.eventType)
+        self.loadToQueue(event)

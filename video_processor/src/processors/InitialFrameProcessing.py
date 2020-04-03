@@ -11,6 +11,12 @@ class InitialFrameProcessing:
         self.averaging_time = averaging_time
         self.pool_color_range = pool_color_range
 
+        self.reset_avg()
+
+        # Live calc results
+        self.warped_frame = None
+
+    def reset_avg(self):
         # Avg frame
         self.avg_frame_buffer = None
         self.avg_frame_samples_count = 0
@@ -20,9 +26,6 @@ class InitialFrameProcessing:
         self.warp_matrix = None
         self.warp_height = None
         self.warp_width = None
-
-        # Live calc results
-        self.warped_frame = None
 
     def _calc_avg_frame(self, frame):
         self.avg_frame_samples_count += 1

@@ -1,32 +1,37 @@
-import Color from "color";
+export interface HSVA {
+  a: number;
+  h: number;
+  s: number;
+  v: number;
+}
+
 export class PoolOptions {
   public table = {
     color: {
       // CV2 HSV Color space
-      from: [70, 150, 50] as any,
-      to: [95, 255, 220] as any
+      from: {
+        hsva: this.cvColor2HSVAPicker([70, 150, 50])
+      },
+      to: {
+        hsva: this.cvColor2HSVAPicker([95, 255, 220])
+      }
     }
   };
 
   public init = {
-    time: 120
+    duration: 120
   };
 
-  constructor() {
-    this.table.color.from = {
-      hsva: this.cvColor2HSVAPicker(this.table.color.from)
-    };
-    this.table.color.to = {
-      hsva: this.cvColor2HSVAPicker(this.table.color.to)
-    };
-  }
-
-  private cvColor2HSVAPicker(cvColor: Array<number>) {
+  public cvColor2HSVAPicker(cvColor: Array<number>): HSVA {
     return {
       h: cvColor[0] * 2,
       s: cvColor[1] / 255,
       v: cvColor[2] / 255,
       a: 1
     };
+  }
+
+  public hsvaColor2Cv(hsva: HSVA) {
+    return [hsva.h / 2, Math.round(hsva.s * 255), Math.round(hsva.v * 255)];
   }
 }

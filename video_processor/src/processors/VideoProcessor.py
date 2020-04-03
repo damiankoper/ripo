@@ -17,6 +17,7 @@ from ..config.VideoConfig import VideoConfig
 from ..config.BallConfig import BallConfig
 from ..config.CueConfig import CueConfig
 from ..events import Event
+from ..events.RerunInitRequestEvent import RerunInitRequestEvent
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 
@@ -107,10 +108,11 @@ class VideoProcessor:
 
         try:
             self.vcap = cv2.VideoCapture(
-                "udp://0.0.0.0:"+str(self.config.udpPort), cv2.CAP_FFMPEG)
+                "udp://0.0.0.0:"+str(self.config.udpPort)+"?overrun_nonfatal=1", cv2.CAP_FFMPEG)
             self.vcap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
             while(1):
+                self.eventHandling()
                 ret, frame = self.vcap.read()
                 if ret:
                     cv2.imshow('VP: ORIGINAL', frame)
@@ -127,7 +129,7 @@ class VideoProcessor:
                     avg_frame = np.resize(avg_frame, self.config.get_shape())
 
                     # chwilowe, bo wywala się gdy podczas wykrywania stołu jest ten fragment nagrania bez stołu
-                    if w < 10 or h < 10:
+                    if w < 500 or h < 500:
                         continue
                     with self.frameReadLock:
                         frameWidth.value = w
@@ -147,8 +149,8 @@ class VideoProcessor:
 
         except (KeyboardInterrupt, SystemExit):
             print("VP: Interrupt")
-            self.terminate()
             self.cleanup()
+            self.terminate()
         print("VP: Exit")
 
     def record(self):
@@ -176,16 +178,18 @@ class VideoProcessor:
 
     def eventHandling(self):
         while not self.eventQueueVP.empty():
-            self.event = self.eventQueueVP.get_nowait()
-
-            if self.event.eventType is "resetInit":
+            event = self.eventQueueVP.get_nowait()
+            print("VP: ", event.eventType)
+            if isinstance(event, RerunInitRequestEvent):
                 self.initFrameProcessing.averaging_time = self.config.initTime
+                self.initFrameProcessing.reset_avg()
 
     def cleanup(self):
         if self.vrec is not None:
             self.vrec.release()
         if self.vcap is not None:
             self.vcap.release()
+            
 
     def terminate(self):
         self.ballProcess.terminate()
