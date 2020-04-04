@@ -14,7 +14,8 @@
                 "-c", "8888",
                 "-w", "1280",
                 "-ht", "720"
-            ]
+            ],
+            "postDebugTask": "kill_ghosts"
         },
         {
             "name": "Python: Current File",

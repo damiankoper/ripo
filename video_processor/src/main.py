@@ -1,6 +1,6 @@
 import argparse
 from .processors.VideoProcessor import VideoProcessor
-from .config.VideoConfig import VideoConfig
+from .config.VideoProcessorConfig import VideoProcessorConfig
 
 if __name__ == "__main__":
 
@@ -21,16 +21,14 @@ if __name__ == "__main__":
                         required=False, type=int, default=30)
     args = parser.parse_args()
 
+    vc = VideoProcessorConfig(args.width, args.height)
+    vc.udpPort = args.port
+    vc.webPort = args.capture
 
+    vp = VideoProcessor(vc)
     if args.capture: 
-        vc = VideoConfig(args.width, args.height, args.capture, args.port)
-        vp = VideoProcessor(vc)
         vp.capture()
     if args.record:
         if args.fps:
-            vc = VideoConfig(args.width, args.height, None, args.port, args.record, args.fps)
-        else:
-            vc = VideoConfig(args.width, args.height, None, args.port, args.record)
-
-        vp = VideoProcessor(vc)
+            vc.recordingFps = args.fps
         vp.record()
