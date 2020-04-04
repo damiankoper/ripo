@@ -1,0 +1,41 @@
+@startuml config
+title Config hierarchy
+abstract class GlobalConfig {
+    + width: int
+    + height: int
+    ..
+    + webPort: int
+    + udpPort: int
+    ..
+    + recordingPath: str 
+    + recordingFps: int
+    --
+    + get_flat_shape(): int
+}
+
+
+abstract class FrameProcessingConfig{
+    + afterCutWidth: Value<int>
+    + afterCutHeight: Value<int>
+    ..
+    + pool_color_range: [from: HSV, to: HSV]
+}
+
+class VideoProcessorConfig{
+    + initDuration: int
+}
+
+class BallProcessorConfig{
+
+}
+
+class CueProcessorConfig{
+
+}
+
+GlobalConfig <|-- FrameProcessingConfig
+FrameProcessingConfig <|-- VideoProcessorConfig
+FrameProcessingConfig <|-- BallProcessorConfig
+FrameProcessingConfig <|-- CueProcessorConfig
+
+@enduml

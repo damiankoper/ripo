@@ -8,10 +8,10 @@ import logging
 from aiohttp import web
 import asyncio
 from multiprocessing import Queue
-from ..events.SetInitConfigEvent import SetInitConfigEvent
+from ..events.InitDurationChangeEvent import InitDurationChangeEvent
+from ..events.PoolColorsChangeEvent import PoolColorsChangeEvent
 from ..events.RerunInitRequestEvent import RerunInitRequestEvent
 from ..events.Event import Event
-# from ..pool_state.PoolState import PoolState
 
 
 class WebsocketServer():
@@ -53,9 +53,13 @@ class WebsocketServer():
             print("connect ", sid)
 
         @self.sio.event
-        def setInitConfig(sid, data):
-            data = json.load(data)
-            setInitConf = SetInitConfigEvent("setInitConfig", data["time"])
+        def initDurationChange(sid, data):
+            setInitConf = InitDurationChangeEvent(data)
+            self.handleEvent(setInitConf)
+
+        @self.sio.event
+        def poolColorsChange(sid, data):
+            setInitConf = PoolColorsChangeEvent(data)
             self.handleEvent(setInitConf)
 
         @self.sio.event

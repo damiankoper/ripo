@@ -1,15 +1,15 @@
 import cv2
 import numpy as np
 import ctypes
+from ..config.VideoProcessorConfig import VideoProcessorConfig
 
 
 class InitialFrameProcessing:
 
-    def __init__(self, averaging_time, pool_color_range):
+    def __init__(self, config: VideoProcessorConfig):
 
         # Config
-        self.averaging_time = averaging_time
-        self.pool_color_range = pool_color_range
+        self.config = config
 
         self.reset_avg()
 
@@ -18,6 +18,7 @@ class InitialFrameProcessing:
 
     def reset_avg(self):
         # Avg frame
+        self.averaging_time_left = self.config.initDuration
         self.avg_frame_buffer = None
         self.avg_frame_samples_count = 0
         self.avg_frame = None
@@ -37,8 +38,8 @@ class InitialFrameProcessing:
     def _calc_avg_warp_matrix(self, frame):
         imageHSV = cv2.cvtColor(self.avg_frame, cv2.COLOR_BGR2HSV)
 
-        lower = np.array(self.pool_color_range[0], dtype="uint8")
-        upper = np.array(self.pool_color_range[1], dtype="uint8")
+        lower = np.array(self.config.pool_color_range[0], dtype="uint8")
+        upper = np.array(self.config.pool_color_range[1], dtype="uint8")
 
         mask = cv2.inRange(imageHSV, lower, upper)
         contours = cv2.findContours(
@@ -66,11 +67,11 @@ class InitialFrameProcessing:
 
     def on_frame(self, frame):
         # Avg process
-        if self.averaging_time > 0:
+        if self.averaging_time_left > 0:
             self._calc_avg_frame(frame)
             self._calc_avg_warp_matrix(frame)
             self.avg_frame = self._warp(self.avg_frame)
-            self.averaging_time -= 1
+            self.averaging_time_left -= 1
 
         self.warped_frame = self._warp(frame)
 

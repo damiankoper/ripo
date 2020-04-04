@@ -13,18 +13,20 @@ from .BallProcessor import BallProcessor
 from .CueProcessor import CueProcessor
 from ..output_module.OutputModule import OutputModule
 from .InitialFrameProcessing import InitialFrameProcessing
-from ..config.VideoConfig import VideoConfig
-from ..config.BallConfig import BallConfig
-from ..config.CueConfig import CueConfig
+from ..config.VideoProcessorConfig import VideoProcessorConfig
+from ..config.BallProcessorConfig import BallProcessorConfig
+from ..config.CueProcessorConfig import CueProcessorConfig
 from ..events import Event
 from ..events.RerunInitRequestEvent import RerunInitRequestEvent
+from ..events.InitDurationChangeEvent import InitDurationChangeEvent
+from ..events.PoolColorsChangeEvent import PoolColorsChangeEvent
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 
 
 class VideoProcessor:
 
-    def __init__(self, config: VideoConfig):
+    def __init__(self, config: VideoProcessorConfig):
 
         self.config = config
 
@@ -52,25 +54,24 @@ class VideoProcessor:
 
     def capture(self):
 
-        self.initFrameProcessing = InitialFrameProcessing(
-            self.config.initTime, self.config.pool_color_range)
+        self.initFrameProcessing = InitialFrameProcessing(self.config)
 
         frameWidth = Value('i', 1)
         frameHeight = Value('i', 1)
 
-        ballConfig = BallConfig(
+        ballProcessorConfig = BallProcessorConfig(
             self.config.width, self.config.height, frameWidth, frameHeight)
-        cueConfig = CueConfig(
+        cueProcessorConfig = CueProcessorConfig(
             self.config.width, self.config.height, frameWidth, frameHeight)
 
         sharedFrame = RawArray(
-            np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_shape())
+            np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_flat_shape())
         sharedAvgFrame = RawArray(
-            np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_shape())
+            np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_flat_shape())
         numpyFrame = np.frombuffer(
-            sharedFrame, dtype=np.uint8).reshape(self.config.get_shape())
+            sharedFrame, dtype=np.uint8).reshape(self.config.get_flat_shape())
         numpyAvgFrame = np.frombuffer(
-            sharedAvgFrame, dtype=np.uint8).reshape(self.config.get_shape())
+            sharedAvgFrame, dtype=np.uint8).reshape(self.config.get_flat_shape())
 
         self.ballProcess = BallProcessor(
             self.ballsQueue,
@@ -78,7 +79,7 @@ class VideoProcessor:
             sharedFrame,
             sharedAvgFrame,
             self.frameReadLock,
-            ballConfig,
+            ballProcessorConfig,
             self.eventQueueBP
         )
 
@@ -88,7 +89,7 @@ class VideoProcessor:
             sharedFrame,
             sharedAvgFrame,
             self.frameReadLock,
-            cueConfig,
+            cueProcessorConfig,
             self.eventQueueCP
         )
 
@@ -123,10 +124,10 @@ class VideoProcessor:
                     w, h = self.initFrameProcessing.get_pool_size()
 
                     frame = self.initFrameProcessing.get_warped_frame().flatten()
-                    frame = np.resize(frame, self.config.get_shape())
+                    frame = np.resize(frame, self.config.get_flat_shape())
 
                     avg_frame = self.initFrameProcessing.get_avg_frame().flatten()
-                    avg_frame = np.resize(avg_frame, self.config.get_shape())
+                    avg_frame = np.resize(avg_frame, self.config.get_flat_shape())
 
                     # chwilowe, bo wywala się gdy podczas wykrywania stołu jest ten fragment nagrania bez stołu
                     if w < 500 or h < 500:
@@ -181,8 +182,11 @@ class VideoProcessor:
             event = self.eventQueueVP.get_nowait()
             print("VP: ", event.eventType)
             if isinstance(event, RerunInitRequestEvent):
-                self.initFrameProcessing.averaging_time = self.config.initTime
                 self.initFrameProcessing.reset_avg()
+            elif isinstance(event, InitDurationChangeEvent):
+                self.config.initDuration = int(event.initDuration)
+            elif isinstance(event, PoolColorsChangeEvent):
+                self.config.pool_color_range = event.pool_color_range
 
     def cleanup(self):
         if self.vrec is not None:

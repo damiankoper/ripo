@@ -1,5 +1,5 @@
 from multiprocessing import Process, Queue, Lock, RawArray, JoinableQueue, Value
-from ..config.GlobalConfig import FrameProcessingConfig
+from ..config.FrameProcessingConfig import FrameProcessingConfig
 from ..pool_state.Vector2i import Vector2i
 
 
@@ -32,4 +32,3 @@ class FrameProcessor(Process):
 
     def run(self):
         pass
-

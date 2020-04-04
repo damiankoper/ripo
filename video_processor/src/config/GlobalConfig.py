@@ -1,4 +1,3 @@
-from multiprocessing import Value
 
 
 class GlobalConfig:
@@ -6,28 +5,20 @@ class GlobalConfig:
     def __init__(
         self,
         width: int,
-        height: int
+        height: int,
+        webPort: int = 8888,
+        udpPort: int = 8444,
+        recordingPath: str = None,
+        recordingFps: int = 30
     ):
-
         self.width = width
-
         self.height = height
 
-    def get_shape(self):
+        self.webPort = webPort
+        self.udpPort = udpPort
+        
+        self.recordingPath = recordingPath
+        self.recordingFps = recordingFps
+
+    def get_flat_shape(self):
         return self.width*self.height*3
-
-
-class FrameProcessingConfig(GlobalConfig):
-
-    def __init__(
-        self,
-        width,
-        height,
-        afterCutWidth: Value,
-        afterCutHeight: Value
-    ):
-        super(FrameProcessingConfig, self).__init__(width, height)
-
-        self.afterCutWidth = afterCutWidth
-
-        self.afterCutHeight = afterCutHeight
