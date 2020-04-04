@@ -152,6 +152,7 @@ class VideoProcessor:
             print("VP: Interrupt")
             self.cleanup()
             self.terminate()
+            sys.exit(0)
         print("VP: Exit")
 
     def record(self):
@@ -199,8 +200,9 @@ class VideoProcessor:
         self.ballProcess.terminate()
         self.ballProcess.join()
 
-        self.outputModuleProcess.terminate()
-        self.outputModuleProcess.join()
+        self.outputModuleProcess.kill()
+        #self.outputModuleProcess.terminate()
+        #self.outputModuleProcess.join()
 
         # self.cueProcess.terminate()
         # self.cueProcess.join()
