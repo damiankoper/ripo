@@ -1,3 +1,5 @@
+import { Vector2i } from "./PoolState/Vector2i";
+
 export interface HSVA {
   a: number;
   h: number;
@@ -15,7 +17,9 @@ export class PoolOptions {
       to: {
         hsva: this.cvColor2HSVAPicker([95, 255, 220])
       }
-    }
+    },
+    shift: new Vector2i(0, 0),
+    shrink: new Vector2i(100, 100)
   };
 
   public init = {

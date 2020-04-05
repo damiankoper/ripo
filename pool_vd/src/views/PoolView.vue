@@ -8,10 +8,10 @@
       :width="512"
     >
       <div>
-        <pool-options> </pool-options>
+        <pool-options v-model="poolOptions" />
       </div>
     </v-navigation-drawer>
-    <pool-stage :poolState="deducedPoolState" />
+    <pool-stage :pool-state="finalPoolState" />
   </v-container>
 </template>
 
@@ -23,6 +23,9 @@ import { PoolDeductionCore } from "../core/PoolDeductionCore";
 import { PoolState, IPoolState } from "../core/models/PoolState/PoolState";
 import { poolState } from "../../tests/testData/PoolState";
 import { Socket } from "vue-socket.io-extended";
+import { PoolOptions } from "../core/models/PoolOptions";
+import { Vector2i } from "../core/models/PoolState/Vector2i";
+import _ from "lodash";
 @Component({
   name: "PoolView",
   components: {
@@ -32,7 +35,40 @@ import { Socket } from "vue-socket.io-extended";
 })
 export default class PoolView extends Vue {
   poolDeductionCore: PoolDeductionCore = new PoolDeductionCore();
-  deducedPoolState: PoolState = poolState;
+
+  poolOptions: PoolOptions = new PoolOptions();
+  deducedPoolState!: PoolState;
+
+  get finalPoolState() {
+    const base = new Vector2i(0.01, 0.01);
+    const finalState = _.cloneDeep(this.deducedPoolState);
+    finalState.balls.forEach(b => {
+      b.position = b.position.multiply(
+        this.poolOptions.table.shrink.multiply(base)
+      );
+      b.position = b.position.add(this.poolOptions.table.shift.multiply(base));
+    });
+    finalState.cues.forEach(c => {
+      c.positionStart = c.positionStart.multiply(
+        this.poolOptions.table.shrink.multiply(base)
+      );
+      c.positionStart = c.positionStart.add(
+        this.poolOptions.table.shift.multiply(base)
+      );
+
+      c.positionEnd = c.positionEnd.multiply(
+        this.poolOptions.table.shrink.multiply(base)
+      );
+      c.positionEnd = c.positionEnd.add(
+        this.poolOptions.table.shift.multiply(base)
+      );
+    });
+    return finalState;
+  }
+
+  beforeMount() {
+    this.onPoolState(poolState);
+  }
 
   @PropSync("optionsVisible", { type: Boolean })
   syncedOptionsVisible!: boolean;

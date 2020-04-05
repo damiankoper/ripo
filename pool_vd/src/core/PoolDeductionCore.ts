@@ -1,4 +1,6 @@
 import { PoolState } from "./models/PoolState/PoolState";
+import { PoolOptions } from "./models/PoolOptions";
+import { Vector2i } from "./models/PoolState/Vector2i";
 
 export class PoolDeductionCore {
   /**
@@ -28,7 +30,12 @@ export class PoolDeductionCore {
   public getDeductedPoolState() {
     /**
      * For tests pool state is based on last given state
+     * // TODO: Return cloned object
      */
-    return this.poolStateHistory[this.poolStateHistory.length - 1];
+    const deductedState = this.poolStateHistory[
+      this.poolStateHistory.length - 1
+    ];
+
+    return deductedState;
   }
 }
