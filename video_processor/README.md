@@ -12,7 +12,7 @@ cd video_processor
 ./test/stream.sh PATH/TO/FILE IP_DEST:PORT
 
 # Przykładowe użycie
-./test/stream.sh test/videos/test.mp4 127.0.0.1:8444
+./test/stream.sh test/videos/test3.mp4 127.0.0.1:8444
 ```
 
 Aby uruchomić stream z kamery RaspberryPi:
