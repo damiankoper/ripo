@@ -3,6 +3,8 @@ from enum import Enum
 
 import cv2
 import numpy as np
+import imutils
+from collections import deque
 
 from .FrameProcessor import FrameProcessor
 from ..pool_state.Ball import Ball, BallType
@@ -46,24 +48,19 @@ class BallProcessor(FrameProcessor):
             frameAvg = frameAvg.reshape(self.height, self.width, 3)
                 
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT,
-            1, 20, param1=50, param2=30, minRadius=8, maxRadius=15)
+            frameSubtracted = cv2.cvtColor(cv2.subtract(~frame, ~frameAvg), cv2.COLOR_BGR2GRAY)
+            + cv2.cvtColor(cv2.subtract(frame, frameAvg), cv2.COLOR_BGR2GRAY)
 
-
-            if circles is not None:
-                for n in circles[0]:
-                    cv2.circle(frame, (n[0], n[1]), n[2], (255, 0, 0))
-
-            cv2.imshow('BP: DETECTED', frame)
-            cv2.imshow('BP: AVG FRAME', frameAvg)
+    
+            cv2.imshow('BP: DETECTED', frameSubtracted)
+            cv2.imshow('BP: AVG FRAME', frame)
             cv2.waitKey(1)
 
-            if circles is not None:
-                balls = []
-                for n in circles[0]:
-                    balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
-                    (n[0], n[1])), BallType.SOLID))
+            #if circles is not None:
+            #    balls = []
+            #    for n in circles[0]:
+            #        balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
+            #        (n[0], n[1])), BallType.SOLID))
 
-                self.queue.put(balls)
+            #    self.queue.put(balls)
             
