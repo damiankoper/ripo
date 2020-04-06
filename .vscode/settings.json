@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/damian_koper/.local/share/virtualenvs/ripo-sALwwkae/bin/python",
+    "python.pythonPath": "/home/mateusz/.local/share/virtualenvs/video_processor-hohldExK/bin/python",
     "python.linting.pylintArgs": [
         "--extension-pkg-whitelist=cv2"
     ],
@@ -14,4 +14,5 @@
     "plantuml.diagramsRoot": "docs/src/diagrams/src",
     "plantuml.exportOutDir": "docs/src/diagrams/out",
     "plantuml.exportSubFolder": false
+
 }

@@ -152,8 +152,8 @@ class VideoProcessor:
             print("VP: Interrupt")
             self.cleanup()
             self.terminate()
-            sys.exit(0)
         print("VP: Exit")
+        sys.exit(0)
 
     def record(self):
         try:
