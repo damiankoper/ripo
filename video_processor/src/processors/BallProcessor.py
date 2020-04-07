@@ -3,13 +3,10 @@ from enum import Enum
 
 import cv2
 import numpy as np
-import imutils
-from collections import deque
 
 from .FrameProcessor import FrameProcessor
 from ..pool_state.Ball import Ball, BallType
 from ..pool_state.Vector2i import Vector2i
-
 
 class BallProcessor(FrameProcessor):
 
@@ -48,19 +45,45 @@ class BallProcessor(FrameProcessor):
             frameAvg = frameAvg.reshape(self.height, self.width, 3)
                 
 
-            frameSubtracted = cv2.cvtColor(cv2.subtract(~frame, ~frameAvg), cv2.COLOR_BGR2GRAY)
-            + cv2.cvtColor(cv2.subtract(frame, frameAvg), cv2.COLOR_BGR2GRAY)
+            grayFrameAvg = cv2.cvtColor(frameAvg, cv2.COLOR_BGR2GRAY)
+            grayFrameAvg = cv2.GaussianBlur(grayFrameAvg, (5, 5), 0)
 
-    
-            cv2.imshow('BP: DETECTED', frameSubtracted)
-            cv2.imshow('BP: AVG FRAME', frame)
+            grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            grayFrame = cv2.GaussianBlur(grayFrame, (5, 5), 0)
+
+            difference = cv2.absdiff(grayFrameAvg, grayFrame)
+            _,thresh = cv2.threshold(difference, 8, 255, cv2.THRESH_BINARY)
+
+            thresh = cv2.dilate(thresh, None, iterations=2)
+
+            circles = []
+            cnts = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+            count = 0
+            for c in cnts:
+                area = cv2.contourArea(c)
+                x, y, w, h = cv2.boundingRect(c)
+                ratio = w/h
+                ((x, y), r) = cv2.minEnclosingCircle(c)
+                if area > 800 and area < 1600 and r < 30 and r > 18:
+                    cv2.circle(frame, (int(x), int(y)), int(r),
+                    (0, 255, 255), 2)
+                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+                    circles.append((int(x), int(y)))
+                    count += 1
+                      
+
+            cv2.imshow('BP: DETECTED', frame)
+            cv2.imshow('BP: THRESH', thresh)
+            cv2.imshow('BP: AVG FRAME', frameAvg)
+
             cv2.waitKey(1)
 
-            #if circles is not None:
-            #    balls = []
-            #    for n in circles[0]:
-            #        balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
-            #        (n[0], n[1])), BallType.SOLID))
+            if circles is not None:
+                 balls = []
+                 for n in circles:
+                     balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
+                     (n[0], n[1])), BallType.SOLID))
 
-            #    self.queue.put(balls)
+                 self.queue.put(balls)
             
