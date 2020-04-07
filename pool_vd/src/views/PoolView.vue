@@ -37,7 +37,7 @@ export default class PoolView extends Vue {
   poolDeductionCore: PoolDeductionCore = new PoolDeductionCore();
 
   poolOptions: PoolOptions = new PoolOptions();
-  deducedPoolState!: PoolState;
+  deducedPoolState: PoolState = new PoolState(poolState);
 
   get finalPoolState() {
     const base = new Vector2i(0.01, 0.01);
