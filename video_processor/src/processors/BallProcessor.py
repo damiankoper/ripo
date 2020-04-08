@@ -22,9 +22,9 @@ class BallProcessor(FrameProcessor):
             if isinstance(event, BallThresholdChangeEvent):
                 self.config.threshold = event.threshold
             elif isinstance(event, BallUpperRadiusChangeEvent):
-                self.config.radiusUpper = event.radiusUpper
+                self.config.radiusUpper = event.radius
             elif isinstance(event, BallLowerRadiusChangeEvent):
-                self.config.radiusLower = event.radiusLower
+                self.config.radiusLower = event.radius
             
     def run(self):
         try:
