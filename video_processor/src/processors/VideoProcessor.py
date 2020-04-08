@@ -128,7 +128,7 @@ class VideoProcessor:
                     cv2.imshow('VP: ORIGINAL', frame)
 
                     self.initFrameProcessing.on_frame(frame)
-                    self.initFrameProcessing.display_components()
+                    #self.initFrameProcessing.display_components()
 
                     w, h = self.initFrameProcessing.get_pool_size()
 
