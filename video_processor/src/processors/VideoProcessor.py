@@ -60,7 +60,16 @@ class VideoProcessor:
         frameHeight = Value('i', 1)
 
         ballProcessorConfig = BallProcessorConfig(
-            self.config.width, self.config.height, frameWidth, frameHeight)
+            self.config.width, 
+            self.config.height, 
+            frameWidth, 
+            frameHeight,
+            8,
+            18,
+            30,
+            )
+
+            
         cueProcessorConfig = CueProcessorConfig(
             self.config.width, self.config.height, frameWidth, frameHeight)
 

@@ -8,14 +8,24 @@ from .FrameProcessor import FrameProcessor
 from ..pool_state.Ball import Ball, BallType
 from ..pool_state.Vector2i import Vector2i
 
+from ..events.BallThresholdChangeEvent import BallThresholdChangeEvent
+from ..events.BallLowerRadiusChangeEvent import BallLowerRadiusChangeEvent
+from ..events.BallUpperRadiusChangeEvent import BallUpperRadiusChangeEvent
+
 class BallProcessor(FrameProcessor):
 
 
     def eventHandling(self):
-         while not self.eventQueue.empty():
-            self.event = self.eventQueue.get_nowait()
-
-            ####
+        while not self.eventQueue.empty():
+            event = self.eventQueue.get_nowait()
+            print("BP: ", event.eventType)
+            if isinstance(event, BallThresholdChangeEvent):
+                self.config.threshold = event.threshold
+            elif isinstance(event, BallUpperRadiusChangeEvent):
+                self.config.radiusUpper = event.radiusUpper
+            elif isinstance(event, BallLowerRadiusChangeEvent):
+                self.config.radiusLower = event.radiusLower
+            
     def run(self):
         try:
             self._run()
@@ -52,7 +62,7 @@ class BallProcessor(FrameProcessor):
             grayFrame = cv2.GaussianBlur(grayFrame, (5, 5), 0)
 
             difference = cv2.absdiff(grayFrameAvg, grayFrame)
-            _,thresh = cv2.threshold(difference, 8, 255, cv2.THRESH_BINARY)
+            _,thresh = cv2.threshold(difference, self.config.threshold, 255, cv2.THRESH_BINARY)
 
             thresh = cv2.dilate(thresh, None, iterations=2)
 
@@ -65,7 +75,7 @@ class BallProcessor(FrameProcessor):
                 x, y, w, h = cv2.boundingRect(c)
                 ratio = w/h
                 ((x, y), r) = cv2.minEnclosingCircle(c)
-                if area > 800 and area < 1600 and r < 30 and r > 18:
+                if area > 800 and area < 1600 and r < self.config.radiusUpper and r > self.config.radiusLower:
                     cv2.circle(frame, (int(x), int(y)), int(r),
                     (0, 255, 255), 2)
                     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)

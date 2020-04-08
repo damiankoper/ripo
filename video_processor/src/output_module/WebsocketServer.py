@@ -11,6 +11,9 @@ from multiprocessing import Queue
 from ..events.InitDurationChangeEvent import InitDurationChangeEvent
 from ..events.PoolColorsChangeEvent import PoolColorsChangeEvent
 from ..events.RerunInitRequestEvent import RerunInitRequestEvent
+from ..events.BallThresholdChangeEvent import BallThresholdChangeEvent
+from ..events.BallLowerRadiusChangeEvent import BallLowerRadiusChangeEvent
+from ..events.BallUpperRadiusChangeEvent import BallUpperRadiusChangeEvent
 from ..events.Event import Event
 
 
@@ -65,6 +68,21 @@ class WebsocketServer():
         @self.sio.event
         def rerunInitRequest(sid):
             self.handleEvent(RerunInitRequestEvent())
+
+        @self.sio.event
+        def ballThresholdChange(sid, data):
+            setBallConf = BallThresholdChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def ballUpperRadiusChange(sid, data):
+            setBallConf = BallLowerRadiusChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def ballLowerRadiusChange(sid, data):
+            setBallConf = BallUpperRadiusChangeEvent(data)
+            self.handleEvent(setBallConf)
 
         @self.sio.event
         def disconnect(sid):
