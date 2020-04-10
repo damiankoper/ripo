@@ -26,6 +26,12 @@ export class PoolOptions {
     duration: 120
   };
 
+  public ball = {
+    radiusLower: 15,
+    radiusUpper: 30,
+    threshold: 15
+  };
+
   public cvColor2HSVAPicker(cvColor: Array<number>): HSVA {
     return {
       h: cvColor[0] * 2,

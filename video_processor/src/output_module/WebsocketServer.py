@@ -76,12 +76,12 @@ class WebsocketServer():
 
         @self.sio.event
         def ballUpperRadiusChange(sid, data):
-            setBallConf = BallLowerRadiusChangeEvent(data)
+            setBallConf = BallUpperRadiusChangeEvent(data)
             self.handleEvent(setBallConf)
 
         @self.sio.event
         def ballLowerRadiusChange(sid, data):
-            setBallConf = BallUpperRadiusChangeEvent(data)
+            setBallConf = BallLowerRadiusChangeEvent(data)
             self.handleEvent(setBallConf)
 
         @self.sio.event

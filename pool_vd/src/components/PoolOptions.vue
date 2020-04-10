@@ -84,6 +84,58 @@
       <v-col>
         <v-card>
           <v-card-title>
+            Ball options
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col>
+                <v-row>
+                  <v-col :cols="4">
+                    <v-text-field
+                      v-model="poolOptions.ball.radiusLower"
+                      label="Lower radius"
+                      type="number"
+                      suffix="px"
+                      min="0"
+                      max="100"
+                      step="1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="4">
+                    <v-text-field
+                      v-model="poolOptions.ball.radiusUpper"
+                      label="Upper radius"
+                      type="number"
+                      suffix="px"
+                      min="0"
+                      max="100"
+                      step="1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="4">
+                    <v-text-field
+                      v-model="poolOptions.ball.threshold"
+                      label="Cut threshold"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-card>
+          <v-card-title>
             Init options
           </v-card-title>
           <v-card-text>
@@ -130,10 +182,15 @@ export default class PoolOptionsVue extends Vue {
   @Model() poolOptions!: PoolOptions;
 
   @Socket()
-  connect() {
+  async connect() {
     console.log("Connection established. Sending config.");
     this.sendPoolColors();
     this.sendInitPeriod();
+    await new Promise(r => setTimeout(r, 500));
+    this.sendBallLowerRadius();
+    this.sendBallUpperRadius();
+    await new Promise(r => setTimeout(r, 500));
+    this.sendBallThreshold();
   }
 
   sendPoolColors() {
@@ -155,9 +212,45 @@ export default class PoolOptionsVue extends Vue {
     this.$socket.client.emit("rerunInitRequest");
   }
 
+  sendBallLowerRadius() {
+    this.$socket.client.emit(
+      "ballLowerRadiusChange",
+      this.poolOptions.ball.radiusLower
+    );
+  }
+
+  sendBallUpperRadius() {
+    this.$socket.client.emit(
+      "ballUpperRadiusChange",
+      this.poolOptions.ball.radiusUpper
+    );
+  }
+
+  sendBallThreshold() {
+    this.$socket.client.emit(
+      "ballThresholdChange",
+      this.poolOptions.ball.threshold
+    );
+  }
+
   @Watch("poolOptions.table.color", { deep: true })
   onColorChange() {
     this.sendPoolColors();
+  }
+
+  @Watch("poolOptions.ball.radiusLower")
+  onBallLowerRadiusChange() {
+    this.sendBallLowerRadius();
+  }
+
+  @Watch("poolOptions.ball.radiusUpper")
+  onBallUpperRadiusChange() {
+    this.sendBallUpperRadius();
+  }
+
+  @Watch("poolOptions.ball.threshold")
+  onBallThresholdChange() {
+    this.sendBallThreshold();
   }
 }
 </script>

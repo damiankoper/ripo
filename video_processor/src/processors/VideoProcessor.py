@@ -64,8 +64,8 @@ class VideoProcessor:
             self.config.height, 
             frameWidth, 
             frameHeight,
-            8,
-            18,
+            15,
+            10,
             30,
             )
 
