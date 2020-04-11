@@ -20,7 +20,7 @@
 
     <v-content style="overflow-x: hidden">
       <PoolView
-        :optionsVisible="optionsVisible"
+        :options-visible="optionsVisible"
         @update:optionsVisible="v => (optionsVisible = v)"
       />
     </v-content>

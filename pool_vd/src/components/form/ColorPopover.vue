@@ -11,9 +11,9 @@
           :value="value.hsva"
           class="ma-2"
           canvas-height="300"
-          @update:color="colorInput"
           mode="hsla"
           flat
+          @update:color="colorInput"
         ></v-color-picker>
       </v-card>
     </v-menu>
