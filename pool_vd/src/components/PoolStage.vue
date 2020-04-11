@@ -9,8 +9,8 @@
         <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>
-    {{ balls }}<br />
-    {{ cues }}
+<!--     {{ balls }}<br />
+    {{ cues }} -->
   </div>
 </template>
 

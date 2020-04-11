@@ -46,8 +46,6 @@ class WebsocketServer():
      
 
     async def emitPoolState(self):
-        self.poolState.sentAt = time.time()
-        # print("Emitting")
         await self.sio.emit('poolState', self.poolState.toJson())
 
     def initEventWatchers(self):

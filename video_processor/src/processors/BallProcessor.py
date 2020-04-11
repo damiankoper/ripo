@@ -68,7 +68,7 @@ class BallProcessor(FrameProcessor):
             frame = cv2.filter2D(frame, -1, sharp_kernel)
 
             difference = cv2.absdiff(frameAvg, frame)
-            difference =cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
+            difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
 
             _, thresh = cv2.threshold(
                 difference, self.config.threshold, 255, cv2.THRESH_BINARY)
@@ -80,7 +80,7 @@ class BallProcessor(FrameProcessor):
                 thresh, cv2.MORPH_OPEN, open_kernel, iterations=iterations)
             thresh = cv2.morphologyEx(
                 thresh, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
-           
+
             circles = []
             cnts = cv2.findContours(
                 thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -94,23 +94,24 @@ class BallProcessor(FrameProcessor):
                 circleArea = math.pi * (r**2)
                 if area > circleArea*0.5 and r < self.config.radiusUpper and r > self.config.radiusLower:
                     cv2.circle(frame, (int(x), int(y)), int(r),
-                            (0, 255, 255), 2)
+                               (0, 255, 255), 2)
                     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
                     circles.append((int(x), int(y)))
                     count += 1
 
             cv2.imshow('BP: DETECTED', frame)
-            cv2.imshow('BP: DIFF', difference)
+            # cv2.imshow('BP: DIFF', difference)
             cv2.imshow('BP: THRESH', thresh)
-            cv2.imshow('BP: THRESH BEFORE', threshBefore)
+            # cv2.imshow('BP: THRESH BEFORE', threshBefore)
             cv2.imshow('BP: AVG FRAME', frameAvg)
 
             cv2.waitKey(1)
 
+            timeMS = time.time_ns() // 1000000
             if circles is not None:
                 balls = []
                 for n in circles:
                     balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
-                        (n[0], n[1])), BallType.SOLID))
+                        (n[0], n[1])), BallType.SOLID, timeMS - (timeMS//1000000*1000000)))
 
                 self.queue.put(balls)

@@ -18,29 +18,32 @@ export const poolState: PoolState = {
     {
       number: 15,
       position: new Vector2i(0.45, 0.6),
-
-      type: BallType.STRIPED
+      type: BallType.STRIPED,
+      detectedAt: performance.now()
     },
     {
       number: 8,
       position: new Vector2i(0, 0),
-      type: BallType.SOLID
+      type: BallType.SOLID,
+      detectedAt: performance.now()
     },
     {
       number: 2,
       position: new Vector2i(0.3, 0.5),
-
-      type: BallType.SOLID
+      type: BallType.SOLID,
+      detectedAt: performance.now()
     },
     {
       number: 3,
       position: new Vector2i(0.7, 0.2),
-      type: BallType.SOLID
+      type: BallType.SOLID,
+      detectedAt: performance.now()
     },
     {
       number: 11,
       position: new Vector2i(1, 1),
-      type: BallType.STRIPED
+      type: BallType.STRIPED,
+      detectedAt: performance.now()
     }
   ]
 };

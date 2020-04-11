@@ -18,8 +18,8 @@ export class PoolOptions {
         hsva: this.cvColor2HSVAPicker([95, 255, 220])
       }
     },
-    shift: new Vector2i(0, 0),
-    shrink: new Vector2i(100, 100)
+    shift: new Vector2i(-3.4, -3.9),
+    shrink: new Vector2i(106.7, 105.7)
   };
 
   public init = {
@@ -31,6 +31,10 @@ export class PoolOptions {
     radiusUpper: 30,
     threshold: 15
   };
+
+  public deduction = {
+    precision: 1
+  }
 
   public cvColor2HSVAPicker(cvColor: Array<number>): HSVA {
     return {

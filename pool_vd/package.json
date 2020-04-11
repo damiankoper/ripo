@@ -18,6 +18,7 @@
     "@types/lodash": "^4.14.149",
     "color": "^3.1.2",
     "core-js": "^3.6.4",
+    "js-polynomial-regression": "^0.9.1",
     "konva": "^4.2.0",
     "lodash": "^4.17.15",
     "monitor.io": "^0.1.0",

@@ -4,6 +4,36 @@
       <v-col>
         <v-card>
           <v-card-title>
+            Init options
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col>
+                <v-row>
+                  <v-col>
+                    <v-text-field
+                      v-model="poolOptions.init.duration"
+                      label="Duration [frames]"
+                      type="number"
+                      @input="sendInitPeriod"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col>
+                    <v-btn block color="primary" @click="sendRerunInitRequest">
+                      Re-run init
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-card>
+          <v-card-title>
             Pool options
           </v-card-title>
           <v-card-text>
@@ -57,8 +87,8 @@
                   label="Horizontal shrink [X]"
                   type="number"
                   suffix="%"
-                  min="-100"
-                  max="100"
+                  min="0"
+                  max="200"
                   step="0.1"
                   class="input-right"
                 ></v-text-field>
@@ -69,8 +99,8 @@
                   label="Vertical shrink [Y]"
                   type="number"
                   suffix="%"
-                  min="-100"
-                  max="100"
+                  min="0"
+                  max="200"
                   step="0.1"
                   class="input-right"
                 ></v-text-field>
@@ -132,28 +162,25 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-row>
+     <v-row>
       <v-col>
         <v-card>
           <v-card-title>
-            Init options
+            Deduction options
           </v-card-title>
           <v-card-text>
             <v-row>
               <v-col>
                 <v-row>
-                  <v-col>
+                  <v-col :cols="4">
                     <v-text-field
-                      v-model="poolOptions.init.duration"
-                      label="Duration [frames]"
+                      v-model="poolOptions.deduction.precision"
+                      label="Prescision [states]"
                       type="number"
-                      @input="sendInitPeriod"
+                      min="1"
+                      max="100"
+                      class="input-right"
                     ></v-text-field>
-                  </v-col>
-                  <v-col>
-                    <v-btn block color="primary" @click="sendRerunInitRequest">
-                      Re-run init
-                    </v-btn>
                   </v-col>
                 </v-row>
               </v-col>

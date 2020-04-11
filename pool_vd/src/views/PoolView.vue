@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, PropSync } from "vue-property-decorator";
+import { Component, Vue, PropSync, Watch } from "vue-property-decorator";
 import PoolStage from "../components/PoolStage.vue";
 import PoolOptionsVue from "../components/PoolOptions.vue";
 import { PoolDeductionCore } from "../core/PoolDeductionCore";
@@ -77,6 +77,11 @@ export default class PoolView extends Vue {
   onPoolState(poolState: IPoolState) {
     this.poolDeductionCore.addPoolState(new PoolState(poolState));
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
+  }
+
+  @Watch("poolOptions.deduction.precision")
+  onPrecisionChange(v: number) {
+    this.poolDeductionCore.setPrecision(v);
   }
 }
 </script>
