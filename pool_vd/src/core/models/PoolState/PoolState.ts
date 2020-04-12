@@ -1,5 +1,6 @@
 import { Ball, IBall } from "./Ball";
 import { Cue, ICue } from "./Cue";
+import { Pocket } from "../Deduction/Pocket";
 
 export interface IPoolState {
   balls: IBall[];
@@ -13,4 +14,5 @@ export class PoolState implements IPoolState {
   }
   balls: Ball[] = [];
   cues: Cue[] = [];
+  pockets: Pocket[] = [];
 }

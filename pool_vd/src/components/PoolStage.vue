@@ -9,8 +9,9 @@
         <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>
-<!--     {{ balls }}<br />
-    {{ cues }} -->
+    <pre>
+    {{ JSON.stringify(poolState.pockets, null, 2) }}
+    </pre>
   </div>
 </template>
 
@@ -47,8 +48,7 @@ export default class PoolStage extends Vue {
   get balls() {
     return this.poolState.balls.map(ball => {
       ball.position = ball.position.clone();
-
-      ball.position = ball.position.multiply(this.intBase).add(this.shift);
+      ball.position = this.transformPosition(ball.position);
       return ball;
     });
   }
@@ -57,13 +57,14 @@ export default class PoolStage extends Vue {
     return this.poolState.cues.map(cue => {
       cue.positionStart = cue.positionStart.clone();
       cue.positionEnd = cue.positionEnd.clone();
-
-      cue.positionStart = cue.positionStart
-        .multiply(this.intBase)
-        .add(this.shift);
-      cue.positionEnd = cue.positionEnd.multiply(this.intBase).add(this.shift);
+      cue.positionStart = this.transformPosition(cue.positionStart);
+      cue.positionEnd = this.transformPosition(cue.positionEnd);
       return cue;
     });
+  }
+
+  transformPosition(v: Vector2i) {
+    return v.multiply(this.intBase).add(this.shift);
   }
 
   get backgroundConfig() {

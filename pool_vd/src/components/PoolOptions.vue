@@ -177,7 +177,7 @@
                       v-model="poolOptions.deduction.precision.regressionStates"
                       label="Regression [states]"
                       type="number"
-                      min="1"
+                      min="0"
                       max="100"
                       class="input-right"
                     ></v-text-field>
@@ -190,13 +190,13 @@
                       "
                       label="Polynomial degree"
                       type="number"
-                      min="1"
+                      min="0"
                       max="100"
                       class="input-right"
                     ></v-text-field>
                   </v-col>
                 </v-row>
-                 <v-row>
+                <v-row>
                   <v-col :cols="6">
                     <v-text-field
                       v-model="poolOptions.deduction.precision.inPocketStates"
@@ -209,10 +209,7 @@
                   </v-col>
                   <v-col :cols="6">
                     <v-text-field
-                      v-model="
-                        poolOptions.deduction.precision
-                          .appearedStates
-                      "
+                      v-model="poolOptions.deduction.precision.appearedStates"
                       label="Appeared after [states]"
                       type="number"
                       min="0"

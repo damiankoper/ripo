@@ -23,7 +23,7 @@
 <script lang="ts">
 import Component from "vue-class-component";
 import Vue from "vue";
-import { PropSync, Model } from "vue-property-decorator";
+import { Model } from "vue-property-decorator";
 import Color from "color";
 import { HSVA } from "../../core/models/PoolOptions";
 @Component({
@@ -33,7 +33,7 @@ export default class ColorPopover extends Vue {
   @Model() readonly value!: { hsva: HSVA };
   menu = false;
 
-  colorInput(v: any) {
+  colorInput(v: { hsva: { h: number; s: number; v: number; a: number } }) {
     this.value.hsva = v.hsva;
   }
 

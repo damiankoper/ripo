@@ -4,18 +4,22 @@ import { Ball } from "./models/PoolState/Ball";
 import { Vector2i } from "./models/PoolState/Vector2i";
 import _ from "lodash";
 import PolynomialRegression from "js-polynomial-regression";
+import { Pocket } from "./models/Deduction/Pocket";
 export class PoolDeductionCore {
+  readonly pocketCatchRadius = 0.1;
+  readonly pockets = [
+    new Pocket("Top-left", new Vector2i(0, 0), this.pocketCatchRadius),
+    new Pocket("Top-middle", new Vector2i(0.5, 0), this.pocketCatchRadius),
+    new Pocket("Top-right", new Vector2i(1, 0), this.pocketCatchRadius),
+    new Pocket("Botton-right", new Vector2i(1, 1), this.pocketCatchRadius),
+    new Pocket("Bottom-middle", new Vector2i(0.5, 1), this.pocketCatchRadius),
+    new Pocket("Bottom-left", new Vector2i(0, 1), this.pocketCatchRadius)
+  ];
+
   /**
    * Contains history states limited to given precision
    */
   private poolStateHistory: PoolState[] = [];
-
-  /**
-   * //TODO: Pozdzielić precyzję dla:
-   * 3. ilość stanów do wykrycia wpadnięcia
-   * 4. ilość stanów do zniknięcia bili
-   * 5. Ilość stanów do uznania bili za obecną
-   */
 
   public precision = {
     regressionPolynomialDegree: 3,
@@ -25,10 +29,14 @@ export class PoolDeductionCore {
     appearedStates: 1
   };
 
+  public clearPoolStates() {
+    this.poolStateHistory = [];
+    this.pockets.forEach(p => p.clear());
+  }
+
   public addPoolState(state: PoolState) {
     this.poolStateHistory.push(state);
     const maxStates = this.getMaxStates();
-    console.log(maxStates);
     if (this.poolStateHistory.length > maxStates)
       this.poolStateHistory = this.poolStateHistory.slice(-(maxStates + 1));
   }
@@ -44,10 +52,18 @@ export class PoolDeductionCore {
   public getDeductedPoolState() {
     const ballStatesMap = this.getBallStatesMap();
     const ballDeducedMap = new Map<number, BallDeduction>();
+
     ballStatesMap.forEach((ballStates, number) => {
-      if (ballStates.length > this.precision.appearedStates) {
+      const filteredBallStates: Ball[] = ballStates.filter(x => x) as Ball[];
+      const pocket: Pocket | undefined = this.getFallenPocket(
+        ballStates,
+        filteredBallStates
+      );
+      if (pocket) {
+        pocket.add(filteredBallStates[filteredBallStates.length - 1]);
+      } else if (filteredBallStates.length >= this.precision.appearedStates) {
         const deducedBall = this.deduceBall(
-          ballStates.slice(-(this.precision.regressionStates + 1))
+          filteredBallStates.slice(-(this.precision.regressionStates + 1))
         );
         ballDeducedMap.set(number, deducedBall);
       }
@@ -58,21 +74,48 @@ export class PoolDeductionCore {
     );
 
     deductedState.balls = [];
-    ballDeducedMap.forEach((ball, number) => {
+    ballDeducedMap.forEach(ball => {
       deductedState.balls.push(_.cloneDeep(ball));
     });
+    deductedState.pockets = this.pockets
 
     return deductedState;
   }
 
-  private getBallStatesMap(): Map<number, Ball[]> {
-    const ballStatesMap = new Map<number, Ball[]>();
-    this.poolStateHistory.forEach(poolState => {
+  private getFallenPocket(
+    ballStates: (Ball | undefined)[],
+    filteredBallStates: Ball[]
+  ): Pocket | undefined {
+    const inPocketStates = this.precision.inPocketStates;
+    const ball = filteredBallStates[filteredBallStates.length - 1];
+    for (const pocket of this.pockets) {
+      if (
+        pocket.isBallNear(ball) &&
+        ballStates.slice(-inPocketStates).filter(x => x).length === 0
+      ) {
+        return pocket;
+      }
+    }
+
+    return undefined;
+  }
+
+  private getBallStatesMap(): Map<number, (Ball | undefined)[]> {
+    const ballStatesMap = new Map<number, (Ball | undefined)[]>();
+
+    this.poolStateHistory.forEach((poolState, i) => {
       poolState.balls.forEach(ball => {
         const ballStates = ballStatesMap.get(ball.number) || [];
         ballStates.push(ball);
         ballStatesMap.set(ball.number, ballStates);
       });
+
+      for (let number = 0; number < 16; number++) {
+        const ballStates = ballStatesMap.get(number) || [];
+        if (ballStates.length <= i) {
+          ballStates.push(undefined);
+        }
+      }
     });
 
     return ballStatesMap;
