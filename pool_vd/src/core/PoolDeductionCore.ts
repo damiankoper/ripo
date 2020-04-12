@@ -12,38 +12,45 @@ export class PoolDeductionCore {
 
   /**
    * //TODO: Pozdzielić precyzję dla:
-   * 1. stopień wielomianu
-   * 2. ilość stanów w interpolacji >= 2
-   * ---
    * 3. ilość stanów do wykrycia wpadnięcia
    * 4. ilość stanów do zniknięcia bili
    * 5. Ilość stanów do uznania bili za obecną
-   * 
-   * 
-   * OSZAR 
    */
 
-  private precision = 1;
+  public precision = {
+    regressionPolynomialDegree: 3,
 
-  public setPrecision(i: number) {
-    this.precision = i;
-  }
-  public getPrecision() {
-    return this.precision;
-  }
+    regressionStates: 1,
+    inPocketStates: 1,
+    appearedStates: 1
+  };
 
   public addPoolState(state: PoolState) {
     this.poolStateHistory.push(state);
-    if (this.poolStateHistory.length > this.precision)
-      this.poolStateHistory.shift();
+    const maxStates = this.getMaxStates();
+    console.log(maxStates);
+    if (this.poolStateHistory.length > maxStates)
+      this.poolStateHistory = this.poolStateHistory.slice(-(maxStates + 1));
+  }
+
+  private getMaxStates() {
+    return Math.max(
+      this.precision.regressionStates,
+      this.precision.inPocketStates,
+      this.precision.appearedStates
+    );
   }
 
   public getDeductedPoolState() {
     const ballStatesMap = this.getBallStatesMap();
     const ballDeducedMap = new Map<number, BallDeduction>();
-
     ballStatesMap.forEach((ballStates, number) => {
-      ballDeducedMap.set(number, this.deduceBall(ballStates));
+      if (ballStates.length > this.precision.appearedStates) {
+        const deducedBall = this.deduceBall(
+          ballStates.slice(-(this.precision.regressionStates + 1))
+        );
+        ballDeducedMap.set(number, deducedBall);
+      }
     });
 
     const deductedState = _.cloneDeep(
@@ -62,9 +69,9 @@ export class PoolDeductionCore {
     const ballStatesMap = new Map<number, Ball[]>();
     this.poolStateHistory.forEach(poolState => {
       poolState.balls.forEach(ball => {
-        const ballState = ballStatesMap.get(ball.number) || [];
-        ballState.push(ball);
-        ballStatesMap.set(ball.number, ballState);
+        const ballStates = ballStatesMap.get(ball.number) || [];
+        ballStates.push(ball);
+        ballStatesMap.set(ball.number, ballStates);
       });
     });
 
@@ -82,16 +89,9 @@ export class PoolDeductionCore {
       dataY.push({ x: ball.detectedAt, y: ball.position.y });
     });
 
-    if (this.precision >= 3) {
-      const degree = this.precision - 1;
-
-      const modelX = PolynomialRegression.read(dataX, degree);
-      const termsX = modelX.getTerms();
-      const predictionX = modelX.predictY(termsX, uncertainState.detectedAt);
-
-      const modelY = PolynomialRegression.read(dataY, degree);
-      const termsY = modelY.getTerms();
-      const predictionY = modelY.predictY(termsY, uncertainState.detectedAt);
+    if (ballStates.length > 1) {
+      const predictionX = this.predictValue(dataX, uncertainState);
+      const predictionY = this.predictValue(dataY, uncertainState);
 
       if (!isNaN(predictionX) && !isNaN(predictionY)) {
         const predictedPosition = new Vector2i(predictionX, predictionY);
@@ -99,5 +99,15 @@ export class PoolDeductionCore {
       }
     }
     return ballDeduction;
+  }
+
+  private predictValue(data: { x: number; y: number }[], uncertainState: Ball) {
+    const model = PolynomialRegression.read(
+      data,
+      this.precision.regressionPolynomialDegree
+    );
+    const terms = model.getTerms();
+    const prediction = model.predictY(terms, uncertainState.detectedAt);
+    return prediction;
   }
 }

@@ -33,7 +33,13 @@ export class PoolOptions {
   };
 
   public deduction = {
-    precision: 1
+    precision: {
+      regressionPolynomialDegree: 3,
+      regressionStates: 1,
+  
+      inPocketStates: 1,
+      appearedStates: 1
+    }
   }
 
   public cvColor2HSVAPicker(cvColor: Array<number>): HSVA {

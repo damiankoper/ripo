@@ -79,9 +79,11 @@ export default class PoolView extends Vue {
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }
 
-  @Watch("poolOptions.deduction.precision")
-  onPrecisionChange(v: number) {
-    this.poolDeductionCore.setPrecision(v);
+  @Watch("poolOptions.deduction.precision", { deep: true })
+  onPrecisionChange(v: any) {
+    console.log(v);
+
+    this.poolDeductionCore.precision = v;
   }
 }
 </script>
