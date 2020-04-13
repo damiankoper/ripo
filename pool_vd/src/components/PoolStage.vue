@@ -1,5 +1,10 @@
 <template>
   <div>
+    <pocket-row
+      :pocket-left="poolState.pockets[0]"
+      :pocket-middle="poolState.pockets[1]"
+      :pocket-right="poolState.pockets[2]"
+    />
     <v-stage ref="stage" :config="stageConfig">
       <v-fast-layer>
         <v-image :config="backgroundConfig" />
@@ -9,9 +14,11 @@
         <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>
-    <pre>
-    {{ JSON.stringify(poolState.pockets, null, 2) }}
-    </pre>
+    <pocket-row
+      :pocket-left="poolState.pockets[3]"
+      :pocket-middle="poolState.pockets[4]"
+      :pocket-right="poolState.pockets[5]"
+    />
   </div>
 </template>
 
@@ -20,13 +27,14 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import { poolData } from "../core/models/PoolData";
 import Ball from "./Ball.vue";
 import Cue from "./Cue.vue";
+import PocketRow from "./PocketRow.vue";
 import { PoolState } from "../core/models/PoolState/PoolState";
 import Konva from "konva";
 import pool from "../assets/pool.svg";
 import { Vector2i } from "../core/models/PoolState/Vector2i";
 @Component({
   name: "PoolStage",
-  components: { Ball, Cue }
+  components: { Ball, Cue, PocketRow }
 })
 export default class PoolStage extends Vue {
   @Prop({ type: Object }) poolState!: PoolState;

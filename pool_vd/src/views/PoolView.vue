@@ -25,7 +25,6 @@ import { poolState } from "../../tests/testData/PoolState";
 import { Socket } from "vue-socket.io-extended";
 import { PoolOptions } from "../core/models/PoolOptions";
 import { Vector2i } from "../core/models/PoolState/Vector2i";
-import _ from "lodash";
 @Component({
   name: "PoolView",
   components: {
@@ -39,7 +38,7 @@ export default class PoolView extends Vue {
   poolOptions: PoolOptions = new PoolOptions();
   deducedPoolState: PoolState = new PoolState(poolState);
 
-  preTransformPoolState(poolState:PoolState) {
+  preTransformPoolState(poolState: PoolState) {
     const base = new Vector2i(0.01, 0.01);
     poolState.balls.forEach(b => {
       b.position = b.position.multiply(
@@ -67,6 +66,9 @@ export default class PoolView extends Vue {
 
   beforeMount() {
     this.onPoolState(poolState);
+    poolState.pockets.forEach((pocket, i) => {
+      this.deducedPoolState.pockets[i].balls = pocket.balls;
+    });
   }
 
   @PropSync("optionsVisible", { type: Boolean })
@@ -74,7 +76,9 @@ export default class PoolView extends Vue {
 
   @Socket("poolState")
   onPoolState(poolStateReceived: IPoolState) {
-    const poolStateTransformed = this.preTransformPoolState(new PoolState(poolStateReceived))
+    const poolStateTransformed = this.preTransformPoolState(
+      new PoolState(poolStateReceived)
+    );
     this.poolDeductionCore.addPoolState(poolStateTransformed);
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }

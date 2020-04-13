@@ -56,6 +56,145 @@ export const poolState: PoolState = {
           number: 11,
           type: BallType.STRIPED,
           detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 12,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 7,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        }
+      ]
+    } as Pocket,
+    {
+      position: new Vector2i(0, 0),
+      balls: [
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 9,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 10,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 15,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 4,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 3,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        }
+      ]
+    } as Pocket,
+    {
+      position: new Vector2i(0, 0),
+      balls: [
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 14,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 2,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 5,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        }
+      ]
+    } as Pocket,
+    {
+      position: new Vector2i(0, 0),
+      balls: [
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 14,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 2,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 5,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        }
+      ]
+    } as Pocket,
+    {
+      position: new Vector2i(0, 0),
+      balls: [
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 14,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 2,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 5,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        }
+      ]
+    } as Pocket,
+    {
+      position: new Vector2i(0, 0),
+      balls: [
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 14,
+          type: BallType.STRIPED,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 2,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
+        },
+        {
+          position: new Vector2i(0.7, 0.2),
+          number: 5,
+          type: BallType.SOLID,
+          detectedAt: performance.now()
         }
       ]
     } as Pocket

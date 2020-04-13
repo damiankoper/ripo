@@ -20,7 +20,7 @@ export class Pocket {
 
   public add(ball: Ball) {
     console.log(this.balls.every(b => b.number !== ball.number));
-    
+
     if (this.balls.every(b => b.number !== ball.number)) {
       this.balls.push(ball);
     }

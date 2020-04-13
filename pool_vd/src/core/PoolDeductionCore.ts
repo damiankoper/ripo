@@ -6,7 +6,7 @@ import _ from "lodash";
 import PolynomialRegression from "js-polynomial-regression";
 import { Pocket } from "./models/Deduction/Pocket";
 export class PoolDeductionCore {
-  readonly pocketCatchRadius = 0.1;
+  readonly pocketCatchRadius = 0.05;
   readonly pockets = [
     new Pocket("Top-left", new Vector2i(0, 0), this.pocketCatchRadius),
     new Pocket("Top-middle", new Vector2i(0.5, 0), this.pocketCatchRadius),
@@ -77,7 +77,7 @@ export class PoolDeductionCore {
     ballDeducedMap.forEach(ball => {
       deductedState.balls.push(_.cloneDeep(ball));
     });
-    deductedState.pockets = this.pockets
+    deductedState.pockets = this.pockets;
 
     return deductedState;
   }

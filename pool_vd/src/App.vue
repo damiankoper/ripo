@@ -39,3 +39,8 @@ export default class App extends Vue {
   optionsVisible = true;
 }
 </script>
+<style>
+body{
+  background-color: #aaa;
+}
+</style>
