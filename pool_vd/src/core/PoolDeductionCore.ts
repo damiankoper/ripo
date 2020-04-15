@@ -4,38 +4,49 @@ import { Ball } from "./models/PoolState/Ball";
 import { Vector2i } from "./models/PoolState/Vector2i";
 import _ from "lodash";
 import PolynomialRegression from "js-polynomial-regression";
+import { Pocket } from "./models/Deduction/Pocket";
 export class PoolDeductionCore {
+  readonly pocketCatchRadius = 0.05;
+  readonly pockets = [
+    new Pocket("Top-left", new Vector2i(0, 0), this.pocketCatchRadius),
+    new Pocket("Top-middle", new Vector2i(0.5, 0), this.pocketCatchRadius),
+    new Pocket("Top-right", new Vector2i(1, 0), this.pocketCatchRadius),
+    new Pocket("Botton-right", new Vector2i(1, 1), this.pocketCatchRadius),
+    new Pocket("Bottom-middle", new Vector2i(0.5, 1), this.pocketCatchRadius),
+    new Pocket("Bottom-left", new Vector2i(0, 1), this.pocketCatchRadius)
+  ];
+
   /**
    * Contains history states limited to given precision
    */
   private poolStateHistory: PoolState[] = [];
 
-  /**
-   * //TODO: Pozdzielić precyzję dla:
-   * 1. stopień wielomianu
-   * 2. ilość stanów w interpolacji >= 2
-   * ---
-   * 3. ilość stanów do wykrycia wpadnięcia
-   * 4. ilość stanów do zniknięcia bili
-   * 5. Ilość stanów do uznania bili za obecną
-   * 
-   * 
-   * OSZAR 
-   */
+  public precision = {
+    regressionPolynomialDegree: 3,
 
-  private precision = 1;
+    regressionStates: 1,
+    inPocketStates: 1,
+    appearedStates: 1
+  };
 
-  public setPrecision(i: number) {
-    this.precision = i;
-  }
-  public getPrecision() {
-    return this.precision;
+  public clearPoolStates() {
+    this.poolStateHistory = [];
+    this.pockets.forEach(p => p.clear());
   }
 
   public addPoolState(state: PoolState) {
     this.poolStateHistory.push(state);
-    if (this.poolStateHistory.length > this.precision)
-      this.poolStateHistory.shift();
+    const maxStates = this.getMaxStates();
+    if (this.poolStateHistory.length > maxStates)
+      this.poolStateHistory = this.poolStateHistory.slice(-(maxStates + 1));
+  }
+
+  private getMaxStates() {
+    return Math.max(
+      this.precision.regressionStates,
+      this.precision.inPocketStates,
+      this.precision.appearedStates
+    );
   }
 
   public getDeductedPoolState() {
@@ -43,7 +54,19 @@ export class PoolDeductionCore {
     const ballDeducedMap = new Map<number, BallDeduction>();
 
     ballStatesMap.forEach((ballStates, number) => {
-      ballDeducedMap.set(number, this.deduceBall(ballStates));
+      const filteredBallStates: Ball[] = ballStates.filter(x => x) as Ball[];
+      const pocket: Pocket | undefined = this.getFallenPocket(
+        ballStates,
+        filteredBallStates
+      );
+      if (pocket) {
+        pocket.add(filteredBallStates[filteredBallStates.length - 1]);
+      } else if (filteredBallStates.length >= this.precision.appearedStates) {
+        const deducedBall = this.deduceBall(
+          filteredBallStates.slice(-(this.precision.regressionStates + 1))
+        );
+        ballDeducedMap.set(number, deducedBall);
+      }
     });
 
     const deductedState = _.cloneDeep(
@@ -51,21 +74,48 @@ export class PoolDeductionCore {
     );
 
     deductedState.balls = [];
-    ballDeducedMap.forEach((ball, number) => {
+    ballDeducedMap.forEach(ball => {
       deductedState.balls.push(_.cloneDeep(ball));
     });
+    deductedState.pockets = this.pockets;
 
     return deductedState;
   }
 
-  private getBallStatesMap(): Map<number, Ball[]> {
-    const ballStatesMap = new Map<number, Ball[]>();
-    this.poolStateHistory.forEach(poolState => {
+  private getFallenPocket(
+    ballStates: (Ball | undefined)[],
+    filteredBallStates: Ball[]
+  ): Pocket | undefined {
+    const inPocketStates = this.precision.inPocketStates;
+    const ball = filteredBallStates[filteredBallStates.length - 1];
+    for (const pocket of this.pockets) {
+      if (
+        pocket.isBallNear(ball) &&
+        ballStates.slice(-inPocketStates).filter(x => x).length === 0
+      ) {
+        return pocket;
+      }
+    }
+
+    return undefined;
+  }
+
+  private getBallStatesMap(): Map<number, (Ball | undefined)[]> {
+    const ballStatesMap = new Map<number, (Ball | undefined)[]>();
+
+    this.poolStateHistory.forEach((poolState, i) => {
       poolState.balls.forEach(ball => {
-        const ballState = ballStatesMap.get(ball.number) || [];
-        ballState.push(ball);
-        ballStatesMap.set(ball.number, ballState);
+        const ballStates = ballStatesMap.get(ball.number) || [];
+        ballStates.push(ball);
+        ballStatesMap.set(ball.number, ballStates);
       });
+
+      for (let number = 0; number < 16; number++) {
+        const ballStates = ballStatesMap.get(number) || [];
+        if (ballStates.length <= i) {
+          ballStates.push(undefined);
+        }
+      }
     });
 
     return ballStatesMap;
@@ -82,16 +132,9 @@ export class PoolDeductionCore {
       dataY.push({ x: ball.detectedAt, y: ball.position.y });
     });
 
-    if (this.precision >= 3) {
-      const degree = this.precision - 1;
-
-      const modelX = PolynomialRegression.read(dataX, degree);
-      const termsX = modelX.getTerms();
-      const predictionX = modelX.predictY(termsX, uncertainState.detectedAt);
-
-      const modelY = PolynomialRegression.read(dataY, degree);
-      const termsY = modelY.getTerms();
-      const predictionY = modelY.predictY(termsY, uncertainState.detectedAt);
+    if (ballStates.length > 1) {
+      const predictionX = this.predictValue(dataX, uncertainState);
+      const predictionY = this.predictValue(dataY, uncertainState);
 
       if (!isNaN(predictionX) && !isNaN(predictionY)) {
         const predictedPosition = new Vector2i(predictionX, predictionY);
@@ -99,5 +142,15 @@ export class PoolDeductionCore {
       }
     }
     return ballDeduction;
+  }
+
+  private predictValue(data: { x: number; y: number }[], uncertainState: Ball) {
+    const model = PolynomialRegression.read(
+      data,
+      this.precision.regressionPolynomialDegree
+    );
+    const terms = model.getTerms();
+    const prediction = model.predictY(terms, uncertainState.detectedAt);
+    return prediction;
   }
 }

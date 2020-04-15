@@ -162,7 +162,7 @@
         </v-card>
       </v-col>
     </v-row>
-     <v-row>
+    <v-row>
       <v-col>
         <v-card>
           <v-card-title>
@@ -172,12 +172,47 @@
             <v-row>
               <v-col>
                 <v-row>
-                  <v-col :cols="4">
+                  <v-col :cols="6">
                     <v-text-field
-                      v-model="poolOptions.deduction.precision"
-                      label="Prescision [states]"
+                      v-model="poolOptions.deduction.precision.regressionStates"
+                      label="Regression [states]"
                       type="number"
-                      min="1"
+                      min="0"
+                      max="100"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="6">
+                    <v-text-field
+                      v-model="
+                        poolOptions.deduction.precision
+                          .regressionPolynomialDegree
+                      "
+                      label="Polynomial degree"
+                      type="number"
+                      min="0"
+                      max="100"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col :cols="6">
+                    <v-text-field
+                      v-model="poolOptions.deduction.precision.inPocketStates"
+                      label="In pocket [states]"
+                      type="number"
+                      min="0"
+                      max="100"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="6">
+                    <v-text-field
+                      v-model="poolOptions.deduction.precision.appearedStates"
+                      label="Appeared after [states]"
+                      type="number"
+                      min="0"
                       max="100"
                       class="input-right"
                     ></v-text-field>

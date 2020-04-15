@@ -11,7 +11,7 @@
         <pool-options v-model="poolOptions" />
       </div>
     </v-navigation-drawer>
-    <pool-stage :pool-state="finalPoolState" />
+    <pool-stage :pool-state="deducedPoolState" />
   </v-container>
 </template>
 
@@ -25,7 +25,6 @@ import { poolState } from "../../tests/testData/PoolState";
 import { Socket } from "vue-socket.io-extended";
 import { PoolOptions } from "../core/models/PoolOptions";
 import { Vector2i } from "../core/models/PoolState/Vector2i";
-import _ from "lodash";
 @Component({
   name: "PoolView",
   components: {
@@ -39,16 +38,15 @@ export default class PoolView extends Vue {
   poolOptions: PoolOptions = new PoolOptions();
   deducedPoolState: PoolState = new PoolState(poolState);
 
-  get finalPoolState() {
+  preTransformPoolState(poolState: PoolState) {
     const base = new Vector2i(0.01, 0.01);
-    const finalState = _.cloneDeep(this.deducedPoolState);
-    finalState.balls.forEach(b => {
+    poolState.balls.forEach(b => {
       b.position = b.position.multiply(
         this.poolOptions.table.shrink.multiply(base)
       );
       b.position = b.position.add(this.poolOptions.table.shift.multiply(base));
     });
-    finalState.cues.forEach(c => {
+    poolState.cues.forEach(c => {
       c.positionStart = c.positionStart.multiply(
         this.poolOptions.table.shrink.multiply(base)
       );
@@ -63,25 +61,41 @@ export default class PoolView extends Vue {
         this.poolOptions.table.shift.multiply(base)
       );
     });
-    return finalState;
+    return poolState;
   }
 
   beforeMount() {
     this.onPoolState(poolState);
+    poolState.pockets.forEach((pocket, i) => {
+      this.deducedPoolState.pockets[i].balls = pocket.balls;
+    });
   }
 
   @PropSync("optionsVisible", { type: Boolean })
   syncedOptionsVisible!: boolean;
 
   @Socket("poolState")
-  onPoolState(poolState: IPoolState) {
-    this.poolDeductionCore.addPoolState(new PoolState(poolState));
+  onPoolState(poolStateReceived: IPoolState) {
+    const poolStateTransformed = this.preTransformPoolState(
+      new PoolState(poolStateReceived)
+    );
+    this.poolDeductionCore.addPoolState(poolStateTransformed);
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }
 
-  @Watch("poolOptions.deduction.precision")
-  onPrecisionChange(v: number) {
-    this.poolDeductionCore.setPrecision(v);
+  @Socket("connect")
+  onConnect() {
+    this.poolDeductionCore.clearPoolStates();
+  }
+
+  @Watch("poolOptions.deduction.precision", { deep: true })
+  onPrecisionChange(v: {
+    regressionPolynomialDegree: number;
+    regressionStates: number;
+    inPocketStates: number;
+    appearedStates: number;
+  }) {
+    this.poolDeductionCore.precision = v;
   }
 }
 </script>

@@ -19,7 +19,7 @@ export class PoolOptions {
       }
     },
     shift: new Vector2i(-3.4, -3.9),
-    shrink: new Vector2i(106.7, 105.7)
+    shrink: new Vector2i(106.7, 107)
   };
 
   public init = {
@@ -33,8 +33,14 @@ export class PoolOptions {
   };
 
   public deduction = {
-    precision: 1
-  }
+    precision: {
+      regressionPolynomialDegree: 0,
+      regressionStates: 0,
+
+      inPocketStates: 5,
+      appearedStates: 2
+    }
+  };
 
   public cvColor2HSVAPicker(cvColor: Array<number>): HSVA {
     return {
