@@ -14,6 +14,10 @@ from ..events.RerunInitRequestEvent import RerunInitRequestEvent
 from ..events.BallThresholdChangeEvent import BallThresholdChangeEvent
 from ..events.BallLowerRadiusChangeEvent import BallLowerRadiusChangeEvent
 from ..events.BallUpperRadiusChangeEvent import BallUpperRadiusChangeEvent
+from ..events.BalldpChangeEvent import BalldpChangeEvent
+from ..events.BallMinDistChangeEvent import BallMinDistChangeEvent
+from ..events.BallParam1ChangeEvent import BallParam1ChangeEvent
+from ..events.BallParam2ChangeEvent import BallParam2ChangeEvent
 from ..events.Event import Event
 
 
@@ -80,6 +84,26 @@ class WebsocketServer():
         @self.sio.event
         def ballLowerRadiusChange(sid, data):
             setBallConf = BallLowerRadiusChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def balldpChange(sid, data):
+            setBallConf = BalldpChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def ballMinDistChange(sid, data):
+            setBallConf = BallMinDistChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def ballParam1Change(sid, data):
+            setBallConf = BallParam1ChangeEvent(data)
+            self.handleEvent(setBallConf)
+
+        @self.sio.event
+        def ballParam2Change(sid, data):
+            setBallConf = BallParam2ChangeEvent(data)
             self.handleEvent(setBallConf)
 
         @self.sio.event

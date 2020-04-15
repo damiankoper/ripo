@@ -65,13 +65,22 @@ class VideoProcessor:
             frameWidth, 
             frameHeight,
             15,
-            10,
-            30,
+            11,
+            19,
+            1.0,
+            22,
+            90,
+            9,
             )
 
-            
+        ballProcessorConfig.genDataSet = self.config.genDataSet
+        ballProcessorConfig.genDataSetFolder = self.config.genDataSetFolder
+
         cueProcessorConfig = CueProcessorConfig(
             self.config.width, self.config.height, frameWidth, frameHeight)
+
+        cueProcessorConfig.genDataSet = self.config.genDataSet
+        cueProcessorConfig.genDataSetFolder = self.config.genDataSetFolder
 
         sharedFrame = RawArray(
             np.ctypeslib.as_ctypes_type(np.uint8), self.config.get_flat_shape())
@@ -122,8 +131,10 @@ class VideoProcessor:
             self.vcap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
             while(1):
+                
                 self.eventHandling()
                 ret, frame = self.vcap.read()
+
                 if ret:
                     cv2.imshow('VP: ORIGINAL', frame)
 

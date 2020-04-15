@@ -20,5 +20,8 @@ class GlobalConfig:
         self.recordingPath = recordingPath
         self.recordingFps = recordingFps
 
+        self.genDataSet = False
+        self.genDataSetFolder = None
+        
     def get_flat_shape(self):
         return self.width*self.height*3

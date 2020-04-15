@@ -19,16 +19,24 @@ if __name__ == "__main__":
                         required=True, type=int)
     parser.add_argument("-f", "--fps", help="Used in recording",
                         required=False, type=int, default=30)
+    parser.add_argument("-d", "--genDataSet", help="Generating training data for SI", required=False, type=str)
+    
     args = parser.parse_args()
 
     vc = VideoProcessorConfig(args.width, args.height)
     vc.udpPort = args.port
     vc.webPort = args.capture
 
+    if args.genDataSet:
+        vc.genDataSet = True
+        vc.genDataSetFolder = args.genDataSet
+
+    if args.fps:
+        vc.recordingFps = args.fps
+
     vp = VideoProcessor(vc)
+
     if args.capture: 
         vp.capture()
     if args.record:
-        if args.fps:
-            vc.recordingFps = args.fps
         vp.record()

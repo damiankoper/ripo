@@ -6,6 +6,6 @@ ffmpeg \
     -i $1 \
     -preset ultrafast \
     -tune zerolatency \
-    -b:v 4M \
+    -b:v 10M \
     -f mpegts \
     udp://$2
