@@ -33,9 +33,9 @@ class BallProcessor(FrameProcessor):
             elif isinstance(event, BallMinDistChangeEvent):
                 self.config.minDist = int(event.minDist)
             elif isinstance(event, BallParam1ChangeEvent):
-                self.config.param1 = int(event.param1)
+                self.config.param1 = float(event.param1)
             elif isinstance(event, BallParam2ChangeEvent):
-                self.config.param2 = int(event.param2)
+                self.config.param2 = float(event.param2)
 
     def run(self):
         try:
@@ -88,19 +88,20 @@ class BallProcessor(FrameProcessor):
             #frame = cv2.GaussianBlur(frame, (5, 5), 0)
             #frame = cv2.filter2D(frame, -1, sharp_kernel)
 
-            difference = cv2.absdiff(frameAvg, frame)
+            difference = cv2.add(cv2.absdiff(frameAvg, frame),cv2.absdiff(~frameAvg, ~frame))
             difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
 
-            # _, thresh = cv2.threshold(
-            #     difference, self.config.threshold, 255, cv2.THRESH_BINARY)
+            _, thresh = cv2.threshold(
+                 difference, self.config.threshold, 255, cv2.THRESH_BINARY)
 
-            # iterations = 2
+            iterations = 2
 
-            # thresh = cv2.morphologyEx(
-            #     thresh, cv2.MORPH_OPEN, open_kernel, iterations=iterations)
-            # thresh = cv2.morphologyEx(
-            #     thresh, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
-          
+            thresh = cv2.morphologyEx(
+                thresh, cv2.MORPH_OPEN, open_kernel, iterations=iterations)
+            thresh = cv2.morphologyEx(
+                thresh, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
+        
+            masked = cv2.bitwise_and(difference, thresh)
 
             # thresh = cv2.erode(thresh, open_kernel, iterations=5) 
 
@@ -125,7 +126,7 @@ class BallProcessor(FrameProcessor):
 
             #output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
 
-            circles = cv2.HoughCircles(image=difference, 
+            circles = cv2.HoughCircles(image=masked, 
                                        method=cv2.HOUGH_GRADIENT, 
                                        dp=self.config.dp, 
                                        minDist=self.config.minDist,
@@ -156,8 +157,8 @@ class BallProcessor(FrameProcessor):
                     cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
 
             cv2.imshow('BP: DETECTED', frame)
-            #cv2.imshow('BP: DIFF', difference)
-            #cv2.imshow('BP: THRESH', thresh)
+            cv2.imshow('BP: DIFF', difference)
+            cv2.imshow('BP: MASKED', masked)
             #cv2.imshow('BP: THRESH BEFORE', threshBefore)
             #cv2.imshow('BP: AVG FRAME', frameAvg)
 
@@ -167,12 +168,12 @@ class BallProcessor(FrameProcessor):
             if circles is not None:
                 balls = []
                 for n in circles[0]:
-                    balls.append(Ball(len(balls)+1, self.normalizeCoordinates(
+                    balls.append(Ball(len(balls)%16, self.normalizeCoordinates(
                         (n[0], n[1])), BallType.SOLID, timeMS - (timeMS//1000000*1000000)))
 
                 self.queue.put(balls)
 
-            print(time.perf_counter()-time_s)
+            #print(time.perf_counter()-time_s)
 
 
 

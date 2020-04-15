@@ -158,6 +158,57 @@
                 </v-row>
               </v-col>
             </v-row>
+            <v-row>
+              <v-col>
+                <v-row>
+                  <v-col :cols="3">
+                    <v-text-field
+                      v-model="poolOptions.ball.dp"
+                      label="Acc. inv. ratio"
+                      type="number"
+                      min="1"
+                      max="10"
+                      step="1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="3">
+                    <v-text-field
+                      v-model="poolOptions.ball.minDist"
+                      label="Min distance"
+                      type="number"
+                      suffix="px"
+                      min="1"
+                      max="100"
+                      step="1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="3">
+                    <v-text-field
+                      v-model="poolOptions.ball.param1"
+                      label="Hough P1"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col :cols="3">
+                    <v-text-field
+                      v-model="poolOptions.ball.param2"
+                      label="Hough P2"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      class="input-right"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-col>
@@ -295,6 +346,25 @@ export default class PoolOptionsVue extends Vue {
     );
   }
 
+  sendBallDP() {
+    this.$socket.client.emit("balldpChange", this.poolOptions.ball.dp);
+  }
+
+  sendBallMinDist() {
+    this.$socket.client.emit(
+      "ballMinDistChange",
+      this.poolOptions.ball.minDist
+    );
+  }
+
+  sendBallParam1() {
+    this.$socket.client.emit("ballParam1Change", this.poolOptions.ball.param1);
+  }
+
+  sendBallParam2() {
+    this.$socket.client.emit("ballParam2Change", this.poolOptions.ball.param2);
+  }
+
   @Watch("poolOptions.table.color", { deep: true })
   onColorChange() {
     this.sendPoolColors();
@@ -313,6 +383,26 @@ export default class PoolOptionsVue extends Vue {
   @Watch("poolOptions.ball.threshold")
   onBallThresholdChange() {
     this.sendBallThreshold();
+  }
+
+  @Watch("poolOptions.ball.dp")
+  onBallDPChange() {
+    this.sendBallDP();
+  }
+
+  @Watch("poolOptions.ball.minDist")
+  onBallMinDistChange() {
+    this.sendBallMinDist();
+  }
+
+  @Watch("poolOptions.ball.param1")
+  onBallParam1Change() {
+    this.sendBallParam1();
+  }
+
+  @Watch("poolOptions.ball.param2")
+  onBallParam2Change() {
+    this.sendBallParam2();
   }
 }
 </script>

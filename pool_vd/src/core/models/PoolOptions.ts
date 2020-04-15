@@ -29,7 +29,12 @@ export class PoolOptions {
   public ball = {
     radiusLower: 15,
     radiusUpper: 30,
-    threshold: 15
+    threshold: 15,
+
+    dp: 1,
+    minDist: 22,
+    param1: 90,
+    param2: 9
   };
 
   public deduction = {
