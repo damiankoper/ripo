@@ -10,6 +10,9 @@ eventlet = "*"
 flask = "*"
 aiohttp = "*"
 autopep8 = "*"
+scikit-learn = "*"
+imutils = "*"
+tensorflow = "*"
 
 [dev-packages]
 pylint = "*"

@@ -65,12 +65,12 @@ class VideoProcessor:
             frameWidth, 
             frameHeight,
             15,
-            11,
-            19,
-            1.0,
+            13,
             22,
-            90,
-            9,
+            1.0,
+            26,
+            180,
+            20,
             )
 
         ballProcessorConfig.genDataSet = self.config.genDataSet
