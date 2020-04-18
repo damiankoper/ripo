@@ -11,6 +11,7 @@ import numpy as np
 
 from .BallProcessor import BallProcessor
 from .CueProcessor import CueProcessor
+from .Classification import Classification
 from ..output_module.OutputModule import OutputModule
 from .InitialFrameProcessing import InitialFrameProcessing
 from ..config.VideoProcessorConfig import VideoProcessorConfig
@@ -20,6 +21,7 @@ from ..events import Event
 from ..events.RerunInitRequestEvent import RerunInitRequestEvent
 from ..events.InitDurationChangeEvent import InitDurationChangeEvent
 from ..events.PoolColorsChangeEvent import PoolColorsChangeEvent
+
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 
@@ -51,6 +53,8 @@ class VideoProcessor:
         self.outputModuleProcess = None
 
         self.initFrameProcessing: InitialFrameProcessing = None
+
+        self.classificator = None
 
     def capture(self):
 
@@ -90,6 +94,7 @@ class VideoProcessor:
             sharedFrame, dtype=np.uint8).reshape(self.config.get_flat_shape())
         numpyAvgFrame = np.frombuffer(
             sharedAvgFrame, dtype=np.uint8).reshape(self.config.get_flat_shape())
+
 
         self.ballProcess = BallProcessor(
             self.ballsQueue,

@@ -2,7 +2,6 @@ from multiprocessing import Process, Queue, Lock, RawArray, JoinableQueue, Value
 from ..config.FrameProcessingConfig import FrameProcessingConfig
 from ..pool_state.Vector2i import Vector2i
 
-
 class FrameProcessor(Process):
 
     def __init__(
@@ -13,7 +12,7 @@ class FrameProcessor(Process):
         avgFrame: RawArray,
         lock: Lock,
         config: FrameProcessingConfig,
-        eventQueue: Queue()
+        eventQueue: Queue(),
     ):
         Process.__init__(self)
         self.queue = queue

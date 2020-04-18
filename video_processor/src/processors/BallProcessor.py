@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 import math
 from .FrameProcessor import FrameProcessor
+from .Classification import Classification
+
 from ..pool_state.Ball import Ball, BallType
 from ..pool_state.Vector2i import Vector2i
 
@@ -56,6 +58,10 @@ class BallProcessor(FrameProcessor):
         cropImgDelay = 5
 
         cropDelayStart = time.perf_counter()
+
+        classificator = Classification()
+
+        classificator.loadModel("data/training/model")
 
         while(1):
 
@@ -150,30 +156,44 @@ class BallProcessor(FrameProcessor):
                         cropDelayStart = time.perf_counter()
 
 
-            if circles is not None:
-                circlesRound = np.round(circles[0, :]).astype("int")
-                for (x, y, r) in circlesRound:
-                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-                    cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
+            # if circles is not None:
+            #     circlesRound = np.round(circles[0, :]).astype("int")
+            #     for (x, y, r) in circlesRound:
+            #         cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+            #         cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
 
             cv2.imshow('BP: DETECTED', frame)
-            cv2.imshow('BP: DIFF', difference)
-            cv2.imshow('BP: MASKED', masked)
+            # cv2.imshow('BP: DIFF', difference)
+            # cv2.imshow('BP: MASKED', masked)
             #cv2.imshow('BP: THRESH BEFORE', threshBefore)
             #cv2.imshow('BP: AVG FRAME', frameAvg)
 
             cv2.waitKey(1)
 
+
             timeMS = time.time_ns() // 1000000
             if circles is not None:
                 balls = []
                 for n in circles[0]:
-                    balls.append(Ball(len(balls)%16, self.normalizeCoordinates(
-                        (n[0], n[1])), BallType.SOLID, timeMS - (timeMS//1000000*1000000)))
+                    cropImg = frame[int((n[1]-25)):int((n[1]+25)), 
+                                    int((n[0]-25)):int((n[0]+25))]
+
+                    ball_number = 1
+                    if cropImg.shape == (50, 50, 3):
+                        ball_number, _ = classificator.classify(cropImg)
+
+                    if int(ball_number) <= 8:
+                        ball_type = BallType.SOLID
+                    else:
+                        ball_type = BallType.STRIPED
+                    if int(ball_number) == 16:
+                        ball_type = BallType.SOLID
+
+                    balls.append(Ball(int(ball_number), self.normalizeCoordinates(
+                        (n[0], n[1])), ball_type, timeMS - (timeMS//1000000*1000000)))
 
                 self.queue.put(balls)
 
-            #print(time.perf_counter()-time_s)
 
 
 

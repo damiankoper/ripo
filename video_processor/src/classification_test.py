@@ -13,15 +13,19 @@ if __name__ == "__main__":
 
 
     im = cv2.imread("data/training/test/8.png")
-    im2 = cv2.imread("data/training/test/16.png")
+    im2 = cv2.imread("data/training/test/0.png")
     im3 = cv2.imread("data/training/test/01.png")
 
 
-    c.classify(im)
-    c.classify(im2)
-    c.classify(im3)
+    label, result = c.classify(im)
+    print(label)
 
+    label, result = c.classify(im2)
+    print(label)
 
+    label, result = c.classify(im3)
+    print(label)
+  
 
 
 

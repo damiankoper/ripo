@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from imutils import paths
+import time
 
 class Classification:
     def __init__(self, width: int = 50, height: int = 50, depth: int = 3):    
@@ -80,7 +81,7 @@ class Classification:
 	    metrics=["accuracy"])
 
         model.fit(train_images, train_labels, validation_data=(test_images, test_labels),
-	    epochs=30, batch_size=32)
+	    epochs=50, batch_size=32)
 
         model.save(modelPath)
 
@@ -106,12 +107,14 @@ class Classification:
 
         image = image.reshape((1, image.shape[0]))
 
-        prediction_result = self.model.predict(image)
+        time_s = time.perf_counter()
 
-        i = prediction_result.argmax(axis=1)[0]
+        prediction_result = self.model.predict_on_batch(image)
+
+        print(time.perf_counter() - time_s)
+
+        i = prediction_result.numpy().argmax(axis=1)[0]
         label = self.labelizer.classes_[i]
 
-        print(prediction_result)
-        print(label)
 
-        return label
+        return label, prediction_result
