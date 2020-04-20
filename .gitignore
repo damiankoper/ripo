@@ -2,3 +2,6 @@ docs/out
 *.pyc
 *.p
 model.data*
+*.pb
+*.data*
+*.index
