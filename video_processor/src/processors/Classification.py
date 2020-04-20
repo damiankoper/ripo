@@ -124,11 +124,11 @@ class Classification:
 
         image = image.reshape((1, image.shape[0]))
 
-        time_s = time.perf_counter()
+        #time_s = time.perf_counter()
 
         prediction_result = self.model.predict_on_batch(image)
 
-        print(time.perf_counter() - time_s)
+        #print(time.perf_counter() - time_s)
 
         i = prediction_result.numpy().argmax(axis=1)[0]
         label = self.labelizer.classes_[i]

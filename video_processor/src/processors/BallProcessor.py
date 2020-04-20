@@ -18,6 +18,7 @@ from ..events.BallMinDistChangeEvent import BallMinDistChangeEvent
 from ..events.BallParam1ChangeEvent import BallParam1ChangeEvent
 from ..events.BallParam2ChangeEvent import BallParam2ChangeEvent
 
+
 class BallProcessor(FrameProcessor):
 
     def eventHandling(self):
@@ -64,6 +65,7 @@ class BallProcessor(FrameProcessor):
         classificator.loadModel("data/training/model")
 
         while(1):
+            time_s = time.perf_counter()
 
             self.throttle.put(1)
 
@@ -80,13 +82,11 @@ class BallProcessor(FrameProcessor):
                 self.width = self.config.afterCutWidth.value
                 self.height = self.config.afterCutHeight.value
 
-
             frame = np.resize(frame, self.width*self.height*3)
             frame = frame.reshape(self.height, self.width, 3)
 
             frameAvg = np.resize(frameAvg, self.width*self.height*3)
             frameAvg = frameAvg.reshape(self.height, self.width, 3)
-
 
             #frameAvg = cv2.GaussianBlur(frameAvg, (5, 5), 0)
             #frameAvg = cv2.filter2D(frameAvg, -1, sharp_kernel)
@@ -94,11 +94,12 @@ class BallProcessor(FrameProcessor):
             #frame = cv2.GaussianBlur(frame, (5, 5), 0)
             #frame = cv2.filter2D(frame, -1, sharp_kernel)
 
-            difference = cv2.add(cv2.absdiff(frameAvg, frame),cv2.absdiff(~frameAvg, ~frame))
+            difference = cv2.add(cv2.absdiff(frameAvg, frame),
+                                 cv2.absdiff(~frameAvg, ~frame))
             difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
 
             _, thresh = cv2.threshold(
-                 difference, self.config.threshold, 255, cv2.THRESH_BINARY)
+                difference, self.config.threshold, 255, cv2.THRESH_BINARY)
 
             iterations = 2
 
@@ -106,10 +107,10 @@ class BallProcessor(FrameProcessor):
                 thresh, cv2.MORPH_OPEN, open_kernel, iterations=iterations)
             thresh = cv2.morphologyEx(
                 thresh, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
-        
+
             masked = cv2.bitwise_and(difference, thresh)
 
-            # thresh = cv2.erode(thresh, open_kernel, iterations=5) 
+            # thresh = cv2.erode(thresh, open_kernel, iterations=5)
 
             # circles = []
             # cnts = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -127,55 +128,37 @@ class BallProcessor(FrameProcessor):
             #         circles.append((int(x), int(y)))
             #         count += 1
 
-
             #output = cv2.bitwise_and(frame, frame, mask=thresh)
 
             #output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
 
-            circles = cv2.HoughCircles(image=masked, 
-                                       method=cv2.HOUGH_GRADIENT, 
-                                       dp=self.config.dp, 
+            circles = cv2.HoughCircles(image=masked,
+                                       method=cv2.HOUGH_GRADIENT,
+                                       dp=self.config.dp,
                                        minDist=self.config.minDist,
                                        param1=self.config.param1,
                                        param2=self.config.param2,
                                        minRadius=self.config.radiusLower,
-                                       maxRadius=self.config.radiusUpper                           
-                                      )
-
-
-            if time.perf_counter()-cropDelayStart > cropImgDelay: 
+                                       maxRadius=self.config.radiusUpper
+                                       )
+            if time.perf_counter()-cropDelayStart > cropImgDelay:
                 if self.config.genDataSet:
                     if circles is not None:
                         for n in circles[0]:
-                            cropImg = frame[int((n[1]-25)):int((n[1]+25)), 
+                            cropImg = frame[int((n[1]-25)):int((n[1]+25)),
                                             int((n[0]-25)):int((n[0]+25))]
                             if cropImg.shape == (50, 50, 3):
-                                cv2.imwrite(self.config.genDataSetFolder+
+                                cv2.imwrite(self.config.genDataSetFolder +
                                             "/data_item"+str(cropImgN)+".png", cropImg)
-                                cropImgN+=1
+                                cropImgN += 1
                         cropDelayStart = time.perf_counter()
 
-
-            # if circles is not None:
-            #     circlesRound = np.round(circles[0, :]).astype("int")
-            #     for (x, y, r) in circlesRound:
-            #         cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-            #         cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
-
-            cv2.imshow('BP: DETECTED', frame)
-            # cv2.imshow('BP: DIFF', difference)
-            # cv2.imshow('BP: MASKED', masked)
-            #cv2.imshow('BP: THRESH BEFORE', threshBefore)
-            #cv2.imshow('BP: AVG FRAME', frameAvg)
-
-            cv2.waitKey(1)
-
-
+            
             timeMS = time.time_ns() // 1000000
+            balls = []
             if circles is not None:
-                balls = []
                 for n in circles[0]:
-                    cropImg = frame[int((n[1]-25)):int((n[1]+25)), 
+                    cropImg = frame[int((n[1]-25)):int((n[1]+25)),
                                     int((n[0]-25)):int((n[0]+25))]
 
                     ball_number = 1
@@ -194,7 +177,21 @@ class BallProcessor(FrameProcessor):
 
                 self.queue.put(balls)
 
+            print(time.perf_counter() - time_s)
 
+            if circles is not None:
+                circlesRound = np.round(circles[0, :]).astype("int")
+                for (x, y, r) in circlesRound:
+                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+                    cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
+                for ball in balls:
+                    cv2.putText(frame, str(ball.number), (int(ball.position.x*self.width), int(ball.position.y*self.height)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
 
+            cv2.imshow('BP: DETECTED', frame)
+            # cv2.imshow('BP: DIFF', difference)
+            # cv2.imshow('BP: MASKED', masked)
+            #cv2.imshow('BP: THRESH BEFORE', threshBefore)
+            #cv2.imshow('BP: AVG FRAME', frameAvg)
 
-
+            cv2.waitKey(1)

@@ -24,6 +24,13 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "subProcess": true
+        },
+        {
+            "name": "Class test",
+            "type": "python",
+            "request": "launch",
+            "module": "video_processor.src.classification_test",
+            "postDebugTask": "kill_ghosts"
         }
     ]
 }
