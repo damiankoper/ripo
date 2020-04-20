@@ -71,17 +71,34 @@ class Classification:
         train_labels = lb.fit_transform(train_labels)
         test_labels = lb.transform(test_labels)
   
-        model = keras.models.Sequential()
-        model.add(keras.layers.Dense(1024, input_shape=((self.width*self.height*self.depth),), activation="sigmoid"))
-        model.add(keras.layers.Dense(512, activation="sigmoid"))
-        model.add(keras.layers.Dense(len(lb.classes_), activation="softmax"))    
 
-        opt = keras.optimizers.SGD(lr=0.01)
-        model.compile(loss="categorical_crossentropy", optimizer=opt,
-	    metrics=["accuracy"])
+        # model = keras.models.Sequential()
+        # model.add(keras.layers.Dense(32, input_shape=((self.width*self.height*self.depth),), activation='relu'))
+        # model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
+        
+        # model.compile(optimizer='rmsprop',
+        #             loss='categorical_crossentropy',
+        #             metrics=['accuracy'])
+
+        # model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=100, batch_size=32)
+
+
+        model = keras.models.Sequential()
+      
+        model.add(keras.layers.Dense(64, activation='relu', input_shape=((self.width*self.height*self.depth),)))
+        model.add(keras.layers.Dropout(0.1))
+        model.add(keras.layers.Dense(32, activation='relu'))
+        model.add(keras.layers.Dropout(0.1))
+        model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
+
+        sgd = keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+        model.compile(loss='categorical_crossentropy',
+                    optimizer=sgd,
+                    metrics=['accuracy'])
 
         model.fit(train_images, train_labels, validation_data=(test_images, test_labels),
-	    epochs=50, batch_size=32)
+                epochs=100,
+                batch_size=64)
 
         model.save(modelPath)
 
