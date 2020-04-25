@@ -68,12 +68,12 @@ class VideoProcessor:
             self.config.height, 
             frameWidth, 
             frameHeight,
-            15,
-            13,
+            8,
+            12,
             22,
             1.0,
-            26,
-            180,
+            24,
+            150,
             20,
             )
 
@@ -163,8 +163,9 @@ class VideoProcessor:
                         np.copyto(numpyFrame, frame)
                         np.copyto(numpyAvgFrame, avg_frame)
 
-                    self.throttle.get()
-                    self.throttle.task_done()
+                    if not self.throttle.empty():
+                        self.throttle.get()
+                        self.throttle.task_done()
 
                 # Main wait to refresh windows
                 c = cv2.waitKey(1)

@@ -21,6 +21,34 @@ class Classification:
         self.height = height
         self.depth = depth
 
+    def genAugmentedDataSet(self, dataFolder: str, newDataFolder: str):
+
+            dataGenerator = keras.preprocessing.image.ImageDataGenerator(
+                rotation_range=90,
+                width_shift_range=0.05,
+                height_shift_range=0.05,
+                shear_range=0.5,
+                horizontal_flip=True,
+                vertical_flip=True,
+                fill_mode="nearest")
+            
+            for label in os.listdir(dataFolder):
+                labelPath = os.path.join(dataFolder, label)
+                savePath = os.path.join(newDataFolder, label)
+                for image in os.listdir(labelPath):
+                    imagePath = os.path.join(labelPath, image)
+                    print(imagePath)
+                    img = keras.preprocessing.image.load_img(imagePath)
+                    if img is not None:                 
+                        img = keras.preprocessing.image.img_to_array(img)
+                        img = np.expand_dims(img, axis=0)
+
+                        generateImage = dataGenerator.flow(img, batch_size=1, save_to_dir=savePath,
+                        save_prefix="image", save_format="jpg")
+
+                        for i in range(101):
+                            generateImage.next()
+
     def createTrainingData(self, dataFolder: str):
         
         train_images = []
@@ -32,7 +60,7 @@ class Classification:
 
         for img in imagePaths:
             image = cv2.imread(img)
-            image = cv2.resize(image, (self.width, self.height)).flatten()
+            image = cv2.resize(image, (self.width, self.height))
             train_images.append(image)
 
             label = img.split(os.path.sep)[-2]
@@ -83,12 +111,27 @@ class Classification:
         # model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=100, batch_size=32)
 
 
+        # model = keras.models.Sequential()
+        # model.add(keras.layers.Dense(128, activation='relu', input_shape=((self.width*self.height*self.depth),)))
+        # model.add(keras.layers.Dropout(0.1))
+        # model.add(keras.layers.Dense(64, activation='relu'))
+        # model.add(keras.layers.Dropout(0.1))
+        # model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
+
         model = keras.models.Sequential()
-      
-        model.add(keras.layers.Dense(64, activation='relu', input_shape=((self.width*self.height*self.depth),)))
-        model.add(keras.layers.Dropout(0.1))
-        model.add(keras.layers.Dense(32, activation='relu'))
-        model.add(keras.layers.Dropout(0.1))
+
+        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(50, 50, 3)))
+        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu'))
+        model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+        model.add(keras.layers.Dropout(0.25))
+
+        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+        model.add(keras.layers.Dropout(0.25))
+
+        model.add(keras.layers.Flatten())
+        model.add(keras.layers.Dense(256, activation='relu'))
         model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
 
         sgd = keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
@@ -97,8 +140,8 @@ class Classification:
                     metrics=['accuracy'])
 
         model.fit(train_images, train_labels, validation_data=(test_images, test_labels),
-                epochs=100,
-                batch_size=64)
+                epochs=5,
+                batch_size=32)
 
         model.save(modelPath)
 
@@ -120,11 +163,12 @@ class Classification:
 
         image = image.astype("float")/255.0
 
-        image = image.flatten()
+        #image = image.flatten()
 
-        image = image.reshape((1, image.shape[0]))
+        #image = image.reshape((1, image.shape[0]))
 
         #time_s = time.perf_counter()
+        image = np.expand_dims(image, axis=0)
 
         prediction_result = self.model.predict_on_batch(image)
 
