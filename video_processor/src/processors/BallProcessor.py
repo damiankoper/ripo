@@ -170,7 +170,7 @@ class BallProcessor(FrameProcessor):
                                     int((n[0]-25)):int((n[0]+25))]
 
 
-                    ball_number = 0
+                    ball_number = 17
                     if cropImg.shape == (50, 50, 3):
                         ball_number, _ = classificator.classify(cropImg)
 

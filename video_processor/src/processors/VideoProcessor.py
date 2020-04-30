@@ -73,8 +73,8 @@ class VideoProcessor:
             22,
             1.0,
             24,
-            150,
-            20,
+            90,
+            10,
             )
 
         ballProcessorConfig.genDataSet = self.config.genDataSet
