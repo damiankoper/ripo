@@ -1,36 +1,40 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [{
-            "name": "Main",
-            "type": "python",
-            "request": "launch",
-            "module": "video_processor.src.main",
-            "subProcess": true,
-            "args": [
-                "-p", "8444",
-                "-c", "8888",
-                "-w", "1280",
-                "-ht", "720"
-            ],
-            "postDebugTask": "kill_ghosts"
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "subProcess": true
-        },
-        {
-            "name": "Class test",
-            "type": "python",
-            "request": "launch",
-            "module": "video_processor.src.classification_test",
-            "postDebugTask": "kill_ghosts"
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Main",
+      "type": "python",
+      "request": "launch",
+      "module": "video_processor.src.main",
+      "subProcess": true,
+      "args": ["-p", "8444", "-c", "8888", "-w", "1280", "-ht", "720"],
+      "postDebugTask": "kill_ghosts"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "subProcess": true
+    },
+    {
+      "name": "Class test",
+      "type": "python",
+      "request": "launch",
+      "module": "video_processor.src.classification_test",
+      "postDebugTask": "kill_ghosts"
+    },
+    {
+      "name": "Labeler",
+      "type": "python",
+      "request": "launch",
+      "module": "video_processor.src.labeler",
+      "postDebugTask": "kill_ghosts",
+      "args": ["-i", "./data/data/", "-o", "./data/training/data/"]
+    }
+  ]
 }
