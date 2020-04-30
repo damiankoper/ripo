@@ -37,16 +37,15 @@ class Classification:
                 savePath = os.path.join(newDataFolder, label)
                 for image in os.listdir(labelPath):
                     imagePath = os.path.join(labelPath, image)
-                    print(imagePath)
                     img = keras.preprocessing.image.load_img(imagePath)
                     if img is not None:                 
                         img = keras.preprocessing.image.img_to_array(img)
                         img = np.expand_dims(img, axis=0)
 
                         generateImage = dataGenerator.flow(img, batch_size=1, save_to_dir=savePath,
-                        save_prefix="image", save_format="jpg")
+                        save_prefix="image", save_format="png")
 
-                        for i in range(101):
+                        for i in range(11):
                             generateImage.next()
 
     def createTrainingData(self, dataFolder: str):
@@ -134,14 +133,22 @@ class Classification:
         model.add(keras.layers.Dense(256, activation='relu'))
         model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
 
+        #tensorboard --logdir data/training/logs/
+        logName = "log{}".format(int(time.time()))
+        tensorboard = keras.callbacks.TensorBoard(log_dir="data/training/logs/{}".format(logName))
+
         sgd = keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy',
-                    optimizer=sgd,
+                    optimizer='adam',
                     metrics=['accuracy'])
 
+        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,
+                  patience=5, min_lr=0.001)
+
         model.fit(train_images, train_labels, validation_data=(test_images, test_labels),
-                epochs=5,
-                batch_size=32)
+                epochs=15,
+                batch_size=64,
+                callbacks=[reduce_lr, tensorboard])
 
         model.save(modelPath)
 

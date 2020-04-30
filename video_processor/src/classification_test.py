@@ -5,11 +5,11 @@ if __name__ == "__main__":
 
     c = Classification()
 
-    c.createTrainingData("data/training/data")
+    #c.genAugmentedDataSet("data/training/trimmed_data", "data/training/augmented_data")
 
-    c.genAugmentedDataSet("data/training/data", "data/training/augmented_data")
+    #c.createTrainingData("data/training/augmented_data")
 
-    c.training("data/training/model")
+    #c.training("data/training/model")
 
     c.loadModel("data/training/model")
 

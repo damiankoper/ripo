@@ -123,8 +123,8 @@ class BallProcessor(FrameProcessor):
                 ((x, y), r) = cv2.minEnclosingCircle(c)
                 circleArea = math.pi * (r**2)
                 if area > circleArea*0.5 and r < 24 and r > 14:
-                    cv2.circle(frame, (int(x), int(y)), int(20), (0, 255, 255), 2)
-                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+                    # cv2.circle(frame, (int(x), int(y)), int(20), (0, 255, 255), 2)
+                    # cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
                     circles.append((int(x), int(y)))
                     cv2.drawContours(thresh, [c], 0, (0,0,0), -1)
                     count += 1
@@ -145,8 +145,8 @@ class BallProcessor(FrameProcessor):
                 circlesRound = np.round(circles2[0, :]).astype("int")
                 for (x, y, r) in circlesRound:
                     circles.append((int(x), int(y)))
-                    cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
-                    cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
+                    # cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
+                    # cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
 
             if time.perf_counter()-cropDelayStart > cropImgDelay:
                 if self.config.genDataSet:
@@ -169,7 +169,8 @@ class BallProcessor(FrameProcessor):
                     cropImg = frame[int((n[1]-25)):int((n[1]+25)),
                                     int((n[0]-25)):int((n[0]+25))]
 
-                    ball_number = 1
+
+                    ball_number = 0
                     if cropImg.shape == (50, 50, 3):
                         ball_number, _ = classificator.classify(cropImg)
 
