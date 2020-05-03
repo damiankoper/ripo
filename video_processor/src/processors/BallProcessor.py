@@ -62,7 +62,7 @@ class BallProcessor(FrameProcessor):
 
         classificator = Classification()
 
-        classificator.loadModel("data/training/model")
+        classificator.loadModel("data/training/trained_model")
 
         while(1):
 

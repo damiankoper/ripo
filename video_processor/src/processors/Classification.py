@@ -21,6 +21,11 @@ class Classification:
         self.height = height
         self.depth = depth
 
+        self.train_images = []
+        self.train_labels = []
+        self.test_images = []
+        self.test_labels = []
+
     def genAugmentedDataSet(self, dataFolder: str, newDataFolder: str):
 
             dataGenerator = keras.preprocessing.image.ImageDataGenerator(
@@ -48,11 +53,8 @@ class Classification:
                         for i in range(11):
                             generateImage.next()
 
-    def createTrainingData(self, dataFolder: str):
+    def createTrainingData(self, dataFolder: str, createPickles: bool = False):
         
-        train_images = []
-        train_labels = []
-
         imagePaths = sorted(list(paths.list_images(dataFolder)))
         random.seed(42)
         random.shuffle(imagePaths)
@@ -60,43 +62,50 @@ class Classification:
         for img in imagePaths:
             image = cv2.imread(img)
             image = cv2.resize(image, (self.width, self.height))
-            train_images.append(image)
+            self.train_images.append(image)
 
             label = img.split(os.path.sep)[-2]
-            train_labels.append(label)
+            self.train_labels.append(label)
 
-        train_images = np.array(train_images, dtype="float") / 255.0
-        train_labels = np.array(train_labels)
+        self.train_images = np.array(self.train_images, dtype="float") / 255.0
+        self.train_labels = np.array(self.train_labels)
 
-        (train_images, test_images, train_labels, test_labels) = train_test_split(train_images,
-	    train_labels, test_size=0.25, random_state=42)
+        (self.train_images, self.test_images, self.train_labels, self.test_labels) = train_test_split(self.train_images,
+	    self.train_labels, test_size=0.25, random_state=42)
 
-        pickle_out = open("data/training/pickles/train_images.p","wb")
-        pickle.dump(train_images, pickle_out)
-        pickle_out.close()
+        if (createPickles):
+            pickle_out = open("data/training/pickles/train_images.p","wb")
+            pickle.dump(self.train_images, pickle_out)
+            pickle_out.close()
 
-        pickle_out = open("data/training/pickles/train_labels.p","wb")
-        pickle.dump(train_labels, pickle_out)
-        pickle_out.close()
+            pickle_out = open("data/training/pickles/train_labels.p","wb")
+            pickle.dump(self.train_labels, pickle_out)
+            pickle_out.close()
 
-        pickle_out = open("data/training/pickles/test_images.p","wb")
-        pickle.dump(test_images, pickle_out)
-        pickle_out.close()
+            pickle_out = open("data/training/pickles/test_images.p","wb")
+            pickle.dump(self.test_images, pickle_out)
+            pickle_out.close()
 
-        pickle_out = open("data/training/pickles/test_labels.p","wb")
-        pickle.dump(test_labels, pickle_out)
-        pickle_out.close()
+            pickle_out = open("data/training/pickles/test_labels.p","wb")
+            pickle.dump(self.test_labels, pickle_out)
+            pickle_out.close()
 
-    def training(self, modelPath: str):
+    def training(self, modelPath: str, loadPickles: bool = False):
 
-        train_images = pickle.load(open("data/training/pickles/train_images.p", "rb"))
-        train_labels = pickle.load(open("data/training/pickles/train_labels.p", "rb"))
-        test_images = pickle.load(open("data/training/pickles/test_images.p", "rb"))
-        test_labels = pickle.load(open("data/training/pickles/test_labels.p", "rb"))
+        if (loadPickles):
+            self.train_images = pickle.load(open("data/training/pickles/train_images.p", "rb"))
+            self.train_labels = pickle.load(open("data/training/pickles/train_labels.p", "rb"))
+            self.test_images = pickle.load(open("data/training/pickles/test_images.p", "rb"))
+            self.test_labels = pickle.load(open("data/training/pickles/test_labels.p", "rb"))
+        else:
+            if(len(self.train_images) == 0):
+                print("No training data")
+                return
+
 
         lb = LabelBinarizer()
-        train_labels = lb.fit_transform(train_labels)
-        test_labels = lb.transform(test_labels)
+        self.train_labels = lb.fit_transform(self.train_labels)
+        self.test_labels = lb.transform(self.test_labels)
   
 
         # model = keras.models.Sequential()
@@ -145,23 +154,23 @@ class Classification:
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                   patience=5, min_lr=0.001)
 
-        model.fit(train_images, train_labels, validation_data=(test_images, test_labels),
+        model.fit(self.train_images, self.train_labels, validation_data=(self.test_images, self.test_labels),
                 epochs=15,
                 batch_size=64,
                 callbacks=[reduce_lr, tensorboard])
 
-        model.save(modelPath)
+        model.save(modelPath+"/model")
 
-        pickle_out = open("data/training/pickles/labelizer.p","wb")
+        pickle_out = open(modelPath+"/labelizer/labelizer.p","wb")
         pickle.dump(lb, pickle_out)
         pickle_out.close()
 
 
     def loadModel(self, modelPath: str):
     
-        self.model = keras.models.load_model(modelPath)
+        self.model = keras.models.load_model(modelPath+"/model")
 
-        self.labelizer = pickle.load(open("data/training/pickles/labelizer.p", "rb"))
+        self.labelizer = pickle.load(open(modelPath +"/labelizer/labelizer.p", "rb"))
 
 
     def classify(self, image):
