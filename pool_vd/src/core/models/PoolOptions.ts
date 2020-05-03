@@ -39,11 +39,9 @@ export class PoolOptions {
 
   public deduction = {
     precision: {
-      regressionPolynomialDegree: 0,
-      regressionStates: 0,
-
+      historyStates: 15,
       inPocketStates: 5,
-      appearedStates: 2
+      velocityStates: 5
     }
   };
 

@@ -8,5 +8,11 @@
             "type": "shell",
             "command": "killall -9 python;"
         }
-    ]
+    ],
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/data/**/*":true
+      }
 }

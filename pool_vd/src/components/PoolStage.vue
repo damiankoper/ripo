@@ -10,14 +10,14 @@
         <v-image :config="backgroundConfig" />
       </v-fast-layer>
       <v-layer>
-        <ball v-for="(ball, nth) in balls" :key="nth" :ball="ball" />
+        <ball v-for="ball in balls" :key="ball.number" :ball="ball" />
         <cue v-for="cue in cues" :key="cue.number" :cue="cue" />
       </v-layer>
     </v-stage>
     <pocket-row
-      :pocket-left="poolState.pockets[3]"
+      :pocket-left="poolState.pockets[5]"
       :pocket-middle="poolState.pockets[4]"
-      :pocket-right="poolState.pockets[5]"
+      :pocket-right="poolState.pockets[3]"
     />
   </div>
 </template>

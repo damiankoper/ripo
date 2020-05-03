@@ -1,10 +1,9 @@
 import { PoolState } from "./models/PoolState/PoolState";
-import BallDeduction from "./models/Deduction/BallDeduction";
 import { Ball } from "./models/PoolState/Ball";
 import { Vector2i } from "./models/PoolState/Vector2i";
 import _ from "lodash";
-import PolynomialRegression from "js-polynomial-regression";
 import { Pocket } from "./models/Deduction/Pocket";
+import { poolState } from "../../tests/testData/PoolState";
 export class PoolDeductionCore {
   readonly pocketCatchRadius = 0.05;
   readonly pockets = [
@@ -20,13 +19,12 @@ export class PoolDeductionCore {
    * Contains history states limited to given precision
    */
   private poolStateHistory: PoolState[] = [];
+  private ballsHistory: Map<number, Ball[]>[] = [];
 
   public precision = {
-    regressionPolynomialDegree: 3,
-
-    regressionStates: 1,
+    historyStates: 1,
     inPocketStates: 1,
-    appearedStates: 1
+    velocityStates: 1
   };
 
   public clearPoolStates() {
@@ -35,122 +33,98 @@ export class PoolDeductionCore {
   }
 
   public addPoolState(state: PoolState) {
+    this.processState(state);
+
     this.poolStateHistory.push(state);
+    this.addBallHistory(state);
+
     const maxStates = this.getMaxStates();
     if (this.poolStateHistory.length > maxStates)
       this.poolStateHistory = this.poolStateHistory.slice(-(maxStates + 1));
+    if (this.ballsHistory.length > maxStates)
+      this.ballsHistory = this.ballsHistory.slice(-(maxStates + 1));
+  }
+
+  public addBallHistory(state: PoolState) {
+    const ballsState = new Map<number, Ball[]>();
+
+    state.balls.forEach(b => {
+      const balls = ballsState.get(b.number) || [];
+      balls.push(b);
+      ballsState.set(b.number, balls);
+    });
+
+    this.ballsHistory.push(ballsState);
   }
 
   private getMaxStates() {
     return Math.max(
-      this.precision.regressionStates,
+      this.precision.historyStates,
       this.precision.inPocketStates,
-      this.precision.appearedStates
+      this.precision.velocityStates
     );
   }
 
   public getDeductedPoolState() {
-    const ballStatesMap = this.getBallStatesMap();
-    const ballDeducedMap = new Map<number, BallDeduction>();
+    const lastState =
+      _.cloneDeep(_.last(this.poolStateHistory)) || new PoolState(poolState);
+    lastState.pockets = this.pockets;
 
-    ballStatesMap.forEach((ballStates, number) => {
-      const filteredBallStates: Ball[] = ballStates.filter(x => x) as Ball[];
-      const pocket: Pocket | undefined = this.getFallenPocket(
-        ballStates,
-        filteredBallStates
-      );
-      if (pocket) {
-        pocket.add(filteredBallStates[filteredBallStates.length - 1]);
-      } else if (filteredBallStates.length >= this.precision.appearedStates) {
-        const deducedBall = this.deduceBall(
-          filteredBallStates.slice(-(this.precision.regressionStates + 1))
-        );
-        ballDeducedMap.set(number, deducedBall);
-      }
-    });
-
-    const deductedState = _.cloneDeep(
-      this.poolStateHistory[this.poolStateHistory.length - 1]
-    );
-
-    deductedState.balls = [];
-    ballDeducedMap.forEach(ball => {
-      deductedState.balls.push(_.cloneDeep(ball));
-    });
-    deductedState.pockets = this.pockets;
-
-    return deductedState;
+    lastState.balls = [];
+    for (let n = 0; n < 16; n++) {
+      const last = _.last(this.getBallHistory(n, this.precision.historyStates));
+      if (last) lastState.balls.push(_.cloneDeep(last));
+    }
+    return lastState;
   }
 
-  private getFallenPocket(
-    ballStates: (Ball | undefined)[],
-    filteredBallStates: Ball[]
-  ): Pocket | undefined {
-    const inPocketStates = this.precision.inPocketStates;
-    const ball = filteredBallStates[filteredBallStates.length - 1];
-    for (const pocket of this.pockets) {
+  private processState(state: PoolState) {
+    const ballMap = new Map<number, Ball[]>();
+    state.balls.forEach(ball => {
+      const ballStates = ballMap.get(ball.number) || [];
+      ballStates.push(ball);
+      ballMap.set(ball.number, ballStates);
+    });
+    const balls = [];
+    state.balls = state.balls.filter(
+      ball => ballMap.get(ball.number)?.length === 1 || this.isBallValid(ball)
+    );
+  }
+
+  private isBallValid(ball: Ball): boolean {
+    const ballHistory: Ball[] = this.getBallHistory(
+      ball.number,
+      this.precision.velocityStates
+    );
+    let ballValid = true;
+    if (ballHistory.length >= 2) {
+      const start = _.first(ballHistory) as Ball;
+      const stop = _.last(ballHistory) as Ball;
+      const time = stop.detectedAt - start.detectedAt;
+      const avgVelocity = stop.position.sub(start.position).multiply(1 / time);
+
+      const stopCurrentDistance = ball.position.sub(stop.position).length();
+      const velocityDistance = avgVelocity
+        .multiply(ball.detectedAt - stop.detectedAt)
+        .length();
+
       if (
-        pocket.isBallNear(ball) &&
-        ballStates.slice(-inPocketStates).filter(x => x).length === 0
-      ) {
-        return pocket;
-      }
+        stopCurrentDistance > 0.05 &&
+        Math.abs(stopCurrentDistance - velocityDistance) > 0.05
+      )
+        ballValid = false;
     }
 
-    return undefined;
+    return ballValid && _.inRange(ball.number, 0, 16);
   }
 
-  private getBallStatesMap(): Map<number, (Ball | undefined)[]> {
-    const ballStatesMap = new Map<number, (Ball | undefined)[]>();
+  private getBallHistory(num: number, states: number): Ball[] {
+    const ballHistory: Ball[] = [];
 
-    this.poolStateHistory.forEach((poolState, i) => {
-      poolState.balls.forEach(ball => {
-        const ballStates = ballStatesMap.get(ball.number) || [];
-        ballStates.push(ball);
-        ballStatesMap.set(ball.number, ballStates);
-      });
-
-      for (let number = 0; number < 16; number++) {
-        const ballStates = ballStatesMap.get(number) || [];
-        if (ballStates.length <= i) {
-          ballStates.push(undefined);
-        }
-      }
+    this.ballsHistory.slice(-(states + 1)).forEach(balls => {
+      const ballState = balls.get(num);
+      if (ballState) ballHistory.push(...ballState);
     });
-
-    return ballStatesMap;
-  }
-
-  private deduceBall(ballStates: Ball[]): BallDeduction {
-    const uncertainState = ballStates.pop() as Ball;
-    const ballDeduction = new BallDeduction(uncertainState);
-
-    const dataX: { x: number; y: number }[] = [];
-    const dataY: { x: number; y: number }[] = [];
-    ballStates.forEach(ball => {
-      dataX.push({ x: ball.detectedAt, y: ball.position.x });
-      dataY.push({ x: ball.detectedAt, y: ball.position.y });
-    });
-
-    if (ballStates.length > 1) {
-      const predictionX = this.predictValue(dataX, uncertainState);
-      const predictionY = this.predictValue(dataY, uncertainState);
-
-      if (!isNaN(predictionX) && !isNaN(predictionY)) {
-        const predictedPosition = new Vector2i(predictionX, predictionY);
-        ballDeduction.position = predictedPosition;
-      }
-    }
-    return ballDeduction;
-  }
-
-  private predictValue(data: { x: number; y: number }[], uncertainState: Ball) {
-    const model = PolynomialRegression.read(
-      data,
-      this.precision.regressionPolynomialDegree
-    );
-    const terms = model.getTerms();
-    const prediction = model.predictY(terms, uncertainState.detectedAt);
-    return prediction;
+    return ballHistory;
   }
 }

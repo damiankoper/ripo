@@ -225,15 +225,15 @@
                 <v-row>
                   <v-col :cols="6">
                     <v-text-field
-                      v-model="poolOptions.deduction.precision.regressionStates"
-                      label="Regression [states]"
+                      v-model="poolOptions.deduction.precision.historyStates"
+                      label="History [states]"
                       type="number"
                       min="0"
                       max="100"
                       class="input-right"
                     ></v-text-field>
                   </v-col>
-                  <v-col :cols="6">
+                  <!--   <v-col :cols="6">
                     <v-text-field
                       v-model="
                         poolOptions.deduction.precision
@@ -245,7 +245,7 @@
                       max="100"
                       class="input-right"
                     ></v-text-field>
-                  </v-col>
+                  </v-col> -->
                 </v-row>
                 <v-row>
                   <v-col :cols="6">
@@ -260,8 +260,8 @@
                   </v-col>
                   <v-col :cols="6">
                     <v-text-field
-                      v-model="poolOptions.deduction.precision.appearedStates"
-                      label="Appeared after [states]"
+                      v-model="poolOptions.deduction.precision.velocityStates"
+                      label="Velocity analysis [states]"
                       type="number"
                       min="0"
                       max="100"

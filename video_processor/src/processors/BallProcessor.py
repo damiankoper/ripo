@@ -91,9 +91,8 @@ class BallProcessor(FrameProcessor):
             #frame = cv2.GaussianBlur(frame, (5, 5), 0)
             #frame = cv2.filter2D(frame, -1, sharp_kernel)
 
-
             # To zbyt małą różnice powoduje zbyt dużym kosztem
-            # w porównaniu do samej różnicy, trace tutaj aż 0,01s. 
+            # w porównaniu do samej różnicy, trace tutaj aż 0,01s.
 
             # difference = cv2.add(cv2.absdiff(frameAvg, frame),
             #                       cv2.absdiff(~frameAvg, ~frame))
@@ -113,7 +112,8 @@ class BallProcessor(FrameProcessor):
                 thresh, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
 
             circles = []
-            cnts = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            cnts = cv2.findContours(
+                thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             cnts = cnts[0] if len(cnts) == 2 else cnts[1]
             count = 0
             for c in cnts:
@@ -126,7 +126,7 @@ class BallProcessor(FrameProcessor):
                     # cv2.circle(frame, (int(x), int(y)), int(20), (0, 255, 255), 2)
                     # cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
                     circles.append((int(x), int(y)))
-                    cv2.drawContours(thresh, [c], 0, (0,0,0), -1)
+                    cv2.drawContours(thresh, [c], 0, (0, 0, 0), -1)
                     count += 1
 
             masked = cv2.bitwise_and(difference, thresh)
@@ -140,13 +140,21 @@ class BallProcessor(FrameProcessor):
                                         minRadius=self.config.radiusLower,
                                         maxRadius=self.config.radiusUpper
                                         )
-
+            circles2filtered = []
             if circles2 is not None:
                 circlesRound = np.round(circles2[0, :]).astype("int")
                 for (x, y, r) in circlesRound:
-                    circles.append((int(x), int(y)))
+                    detectedBefore = False
+                    for (cX, cY) in circles:
+                        distance = math.sqrt((x-cX)**2 + (y-cY)**2)
+                        if distance < self.config.radiusLower*2:
+                            detectedBefore = True
+                            break
+                    if not detectedBefore:
+                        circles2filtered.append((int(x), int(y)))
                     # cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), -1)
                     # cv2.circle(frame, (x, y), 20, (0, 255, 255), 2)
+            circles = circles+circles2filtered
 
             if time.perf_counter()-cropDelayStart > cropImgDelay:
                 if self.config.genDataSet:
@@ -160,21 +168,19 @@ class BallProcessor(FrameProcessor):
                                 cropImgN += 1
                         cropDelayStart = time.perf_counter()
 
-            
             timeMS = time.time_ns() // 1000000
-            
+
             balls = []
             if circles is not None:
                 for n in circles:
                     cropImg = frame[int((n[1]-25)):int((n[1]+25)),
                                     int((n[0]-25)):int((n[0]+25))]
 
-
                     ball_number = 17
                     if cropImg.shape == (50, 50, 3):
                         ball_number, _ = classificator.classify(cropImg)
 
-                    if ball_number != 'NaB':
+                    if ball_number != 'NaB' and ball_number != 17:
                         if int(ball_number) <= 8:
                             ball_type = BallType.SOLID
                         else:

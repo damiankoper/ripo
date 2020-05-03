@@ -16,6 +16,10 @@ export class Vector2i implements IVector2i {
     return new Vector2i(this.x + v.x, this.y + v.y);
   }
 
+  public sub(v: Vector2i) {
+    return new Vector2i(this.x - v.x, this.y - v.y);
+  }
+
   public multiply(a: number | Vector2i) {
     if (a instanceof Vector2i) {
       return new Vector2i(this.x * a.x, this.y * a.y);

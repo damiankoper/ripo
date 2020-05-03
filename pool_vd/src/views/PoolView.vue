@@ -90,10 +90,9 @@ export default class PoolView extends Vue {
 
   @Watch("poolOptions.deduction.precision", { deep: true })
   onPrecisionChange(v: {
-    regressionPolynomialDegree: number;
-    regressionStates: number;
+    historyStates: number;
     inPocketStates: number;
-    appearedStates: number;
+    velocityStates: number;
   }) {
     this.poolDeductionCore.precision = v;
   }
