@@ -8,10 +8,13 @@
       :width="512"
     >
       <div>
-        <pool-options v-model="poolOptions" />
+        <pool-options
+          v-model="poolOptions"
+          @clearPockets="poolDeductionCore.clearPockets()"
+        />
       </div>
     </v-navigation-drawer>
-    <pool-stage :pool-state="deducedPoolState" />
+    <pool-stage :pool-state="deducedPoolState" :pool-options="poolOptions"/>
   </v-container>
 </template>
 
@@ -37,33 +40,7 @@ export default class PoolView extends Vue {
 
   poolOptions: PoolOptions = new PoolOptions();
   deducedPoolState: PoolState = new PoolState(poolState);
-
-  preTransformPoolState(poolState: PoolState) {
-    const base = new Vector2i(0.01, 0.01);
-    poolState.balls.forEach(b => {
-      b.position = b.position.multiply(
-        this.poolOptions.table.shrink.multiply(base)
-      );
-      b.position = b.position.add(this.poolOptions.table.shift.multiply(base));
-    });
-    poolState.cues.forEach(c => {
-      c.positionStart = c.positionStart.multiply(
-        this.poolOptions.table.shrink.multiply(base)
-      );
-      c.positionStart = c.positionStart.add(
-        this.poolOptions.table.shift.multiply(base)
-      );
-
-      c.positionEnd = c.positionEnd.multiply(
-        this.poolOptions.table.shrink.multiply(base)
-      );
-      c.positionEnd = c.positionEnd.add(
-        this.poolOptions.table.shift.multiply(base)
-      );
-    });
-    return poolState;
-  }
-
+  
   beforeMount() {
     this.onPoolState(poolState);
     poolState.pockets.forEach((pocket, i) => {
@@ -76,10 +53,8 @@ export default class PoolView extends Vue {
 
   @Socket("poolState")
   onPoolState(poolStateReceived: IPoolState) {
-    const poolStateTransformed = this.preTransformPoolState(
-      new PoolState(poolStateReceived)
-    );
-    this.poolDeductionCore.addPoolState(poolStateTransformed);
+    const poolState = new PoolState(poolStateReceived);
+    this.poolDeductionCore.addPoolState(poolState);
     this.deducedPoolState = this.poolDeductionCore.getDeductedPoolState();
   }
 
@@ -88,7 +63,7 @@ export default class PoolView extends Vue {
     this.poolDeductionCore.clearPoolStates();
   }
 
-  @Watch("poolOptions.deduction.precision", { deep: true })
+  @Watch("poolOptions.deduction.precision", { deep: true, immediate: true })
   onPrecisionChange(v: {
     historyStates: number;
     inPocketStates: number;

@@ -7,3 +7,4 @@ model.data*
 *.index
 data/*
 data
+!data/**/.gitkeep

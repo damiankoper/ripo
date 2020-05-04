@@ -5,14 +5,26 @@ import _ from "lodash";
 import { Pocket } from "./models/Deduction/Pocket";
 import { poolState } from "../../tests/testData/PoolState";
 export class PoolDeductionCore {
-  readonly pocketCatchRadius = 0.05;
+  readonly pocketCatchRadius = 0.115;
   readonly pockets = [
-    new Pocket("Top-left", new Vector2i(0, 0), this.pocketCatchRadius),
-    new Pocket("Top-middle", new Vector2i(0.5, 0), this.pocketCatchRadius),
-    new Pocket("Top-right", new Vector2i(1, 0), this.pocketCatchRadius),
-    new Pocket("Botton-right", new Vector2i(1, 1), this.pocketCatchRadius),
-    new Pocket("Bottom-middle", new Vector2i(0.5, 1), this.pocketCatchRadius),
-    new Pocket("Bottom-left", new Vector2i(0, 1), this.pocketCatchRadius)
+    new Pocket("Top-left", new Vector2i(0.1, 0.08), this.pocketCatchRadius),
+    new Pocket(
+      "Top-middle",
+      new Vector2i(1.03, 0.04),
+      this.pocketCatchRadius
+    ),
+    new Pocket("Top-right", new Vector2i(1.97, 0.08), this.pocketCatchRadius),
+    new Pocket(
+      "Botton-right",
+      new Vector2i(1.97, 0.99),
+      this.pocketCatchRadius
+    ),
+    new Pocket(
+      "Bottom-middle",
+      new Vector2i(1.03, 1.03),
+      this.pocketCatchRadius
+    ),
+    new Pocket("Bottom-left", new Vector2i(0.1, 0.99), this.pocketCatchRadius)
   ];
 
   /**
@@ -32,7 +44,13 @@ export class PoolDeductionCore {
     this.pockets.forEach(p => p.clear());
   }
 
+  public clearPockets() {
+    this.pockets.forEach(p => p.clear());
+    console.log("Cleared pockets");
+  }
+
   public addPoolState(state: PoolState) {
+    this.processPockets();
     this.processState(state);
 
     this.poolStateHistory.push(state);
@@ -68,7 +86,7 @@ export class PoolDeductionCore {
   public getDeductedPoolState() {
     const lastState =
       _.cloneDeep(_.last(this.poolStateHistory)) || new PoolState(poolState);
-    lastState.pockets = this.pockets;
+    lastState.pockets = _.cloneDeep(this.pockets);
 
     lastState.balls = [];
     for (let n = 0; n < 16; n++) {
@@ -85,7 +103,6 @@ export class PoolDeductionCore {
       ballStates.push(ball);
       ballMap.set(ball.number, ballStates);
     });
-    const balls = [];
     state.balls = state.balls.filter(
       ball => ballMap.get(ball.number)?.length === 1 || this.isBallValid(ball)
     );
@@ -96,12 +113,22 @@ export class PoolDeductionCore {
       ball.number,
       this.precision.velocityStates
     );
-    let ballValid = true;
+
+    const rangeCheck = this.ballRangeCheck(ball);
+    if (!rangeCheck) return false;
+    const inPocketCheck = this.inPocketCheck(ball);
+    if (inPocketCheck) return false;
+    const velocityCheck = this.ballVelocityCheck(ballHistory, ball);
+    if (!velocityCheck) return false;
+
+    return true;
+  }
+
+  private ballVelocityCheck(ballHistory: Ball[], ball: Ball) {
     if (ballHistory.length >= 2) {
       const start = _.first(ballHistory) as Ball;
       const stop = _.last(ballHistory) as Ball;
-      const time = stop.detectedAt - start.detectedAt;
-      const avgVelocity = stop.position.sub(start.position).multiply(1 / time);
+      const avgVelocity = this.getBallVelocity(start, stop);
 
       const stopCurrentDistance = ball.position.sub(stop.position).length();
       const velocityDistance = avgVelocity
@@ -109,13 +136,21 @@ export class PoolDeductionCore {
         .length();
 
       if (
-        stopCurrentDistance > 0.05 &&
-        Math.abs(stopCurrentDistance - velocityDistance) > 0.05
+        stopCurrentDistance > 0.1 &&
+        Math.abs(stopCurrentDistance - velocityDistance) > 0.1
       )
-        ballValid = false;
+        return false;
     }
+    return true;
+  }
 
-    return ballValid && _.inRange(ball.number, 0, 16);
+  private ballRangeCheck(ball: Ball) {
+    return _.inRange(ball.number, 0, 16);
+  }
+
+  private getBallVelocity(start: Ball, stop: Ball): Vector2i {
+    const time = stop.detectedAt - start.detectedAt;
+    return stop.position.sub(start.position).multiply(1 / time);
   }
 
   private getBallHistory(num: number, states: number): Ball[] {
@@ -126,5 +161,42 @@ export class PoolDeductionCore {
       if (ballState) ballHistory.push(...ballState);
     });
     return ballHistory;
+  }
+
+  private inPocketCheck(ball: Ball) {
+    if (ball.number === 0) return false;
+    for (const pocket of this.pockets) {
+      const index = pocket.balls.findIndex(b => b.number === ball.number);
+      if (index >= 0) return true;
+    }
+    return false;
+  }
+
+  private processPockets() {
+    for (let n = 0; n < 16; n++) {
+      const ballsStates: Array<Ball | null> = new Array(
+        this.precision.inPocketStates + 1
+      ).fill(null);
+      this.ballsHistory
+        .slice(-this.precision.inPocketStates - 1)
+        .forEach((ballsHistory, i) => {
+          const balls = ballsHistory.get(n) || [];
+          if (balls.length > 0) ballsStates[i] = balls[0];
+        });
+
+      if (n == 13)console.log(ballsStates);
+
+      if (
+        ballsStates.slice(1).filter(x => x === null).length >=
+        this.precision.inPocketStates
+      ) {
+        const b = ballsStates[0];
+        if (b) {
+          if (n == 13) console.log(_.cloneDeep(b.position), this.pockets[5].position);
+          const pocket = this.pockets.find(p => p.isBallNear(b));
+          pocket?.add(b);
+        }
+      }
+    }
   }
 }

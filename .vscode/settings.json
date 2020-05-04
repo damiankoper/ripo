@@ -1,18 +1,16 @@
 {
-    "python.pythonPath": "/home/damian_koper/.local/share/virtualenvs/ripo-sALwwkae/bin/python",
-    "python.linting.pylintArgs": [
-        "--extension-pkg-whitelist=cv2"
-    ],
-    "spellright.language": [
-        "Polish"
-    ],
-    "spellright.documentTypes": [
-        "markdown",
-        "plaintext",
-    ],
-    "latex-workshop.latex.outDir": "../out",
-    "plantuml.diagramsRoot": "docs/src/diagrams/src",
-    "plantuml.exportOutDir": "docs/src/diagrams/out",
-    "plantuml.exportSubFolder": false
-
+  "python.pythonPath": "/home/damian_koper/.local/share/virtualenvs/ripo-sALwwkae/bin/python",
+  "python.linting.pylintArgs": ["--extension-pkg-whitelist=cv2"],
+  "spellright.language": ["Polish"],
+  "spellright.documentTypes": ["markdown", "plaintext"],
+  "latex-workshop.latex.outDir": "../out",
+  "plantuml.diagramsRoot": "docs/src/diagrams/src",
+  "plantuml.exportOutDir": "docs/src/diagrams/out",
+  "plantuml.exportSubFolder": false,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/data/**/*": true
+  }
 }

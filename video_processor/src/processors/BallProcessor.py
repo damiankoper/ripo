@@ -62,7 +62,7 @@ class BallProcessor(FrameProcessor):
 
         classificator = Classification()
 
-        classificator.loadModel("data/training/trained_model")
+        classificator.loadModel("data/training/model")
 
         while(1):
 
@@ -197,10 +197,10 @@ class BallProcessor(FrameProcessor):
                     cv2.putText(frame, str(ball.number), (int(ball.position.x*self.width), int(ball.position.y*self.height)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
 
-            cv2.imshow('BP: DETECTED', frame)
+            #cv2.imshow('BP: DETECTED', frame)
             # cv2.imshow('BP: DIFF', difference)
             # cv2.imshow('BP: MASKED', masked)
             #cv2.imshow('BP: THRESH BEFORE', threshBefore)
             #cv2.imshow('BP: AVG FRAME', frameAvg)
 
-            cv2.waitKey(1)
+            #cv2.waitKey(1)

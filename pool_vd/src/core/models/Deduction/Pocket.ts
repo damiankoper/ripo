@@ -13,9 +13,7 @@ export class Pocket {
   }
 
   public isBallNear(ball: Ball) {
-    return (
-      this.position.add(ball.position.multiply(-1)).length() <= this.catchRadius
-    );
+    return this.position.sub(ball.position).length() <= this.catchRadius;
   }
 
   public add(ball: Ball) {

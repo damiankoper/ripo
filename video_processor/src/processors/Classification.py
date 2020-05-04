@@ -161,6 +161,7 @@ class Classification:
 
         model.save(modelPath+"/model")
 
+        os.makedirs(modelPath+"/labelizer", exist_ok=True)
         pickle_out = open(modelPath+"/labelizer/labelizer.p","wb")
         pickle.dump(lb, pickle_out)
         pickle_out.close()

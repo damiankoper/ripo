@@ -233,19 +233,11 @@
                       class="input-right"
                     ></v-text-field>
                   </v-col>
-                  <!--   <v-col :cols="6">
-                    <v-text-field
-                      v-model="
-                        poolOptions.deduction.precision
-                          .regressionPolynomialDegree
-                      "
-                      label="Polynomial degree"
-                      type="number"
-                      min="0"
-                      max="100"
-                      class="input-right"
-                    ></v-text-field>
-                  </v-col> -->
+                  <v-col :cols="6">
+                    <v-btn block color="primary" @click="$emit('clearPockets')">
+                      Clear pockets
+                    </v-btn>
+                  </v-col>
                 </v-row>
                 <v-row>
                   <v-col :cols="6">

@@ -8,6 +8,11 @@
     <v-stage ref="stage" :config="stageConfig">
       <v-fast-layer>
         <v-image :config="backgroundConfig" />
+        <v-ellipse
+          v-for="(pocket, nth) in pockets"
+          :key="nth"
+          :config="pocket"
+        />
       </v-fast-layer>
       <v-layer>
         <ball v-for="ball in balls" :key="ball.number" :ball="ball" />
@@ -32,12 +37,14 @@ import { PoolState } from "../core/models/PoolState/PoolState";
 import Konva from "konva";
 import pool from "../assets/pool.svg";
 import { Vector2i } from "../core/models/PoolState/Vector2i";
+import { PoolOptions } from "../core/models/PoolOptions";
 @Component({
   name: "PoolStage",
   components: { Ball, Cue, PocketRow }
 })
 export default class PoolStage extends Vue {
   @Prop({ type: Object }) poolState!: PoolState;
+  @Prop({ type: Object }) poolOptions!: PoolOptions;
   backgroundImage = new Image(100, 100);
   stageWidth = 1920;
 
@@ -71,8 +78,30 @@ export default class PoolStage extends Vue {
     });
   }
 
+  get pockets() {
+    return this.poolState.pockets.map(p => {
+      const r = new Vector2i(p.catchRadius, p.catchRadius)
+        .multiply(this.poolOptions.table.shrink.multiply(this.base))
+        .multiply(this.intBase)
+        .multiply(new Vector2i(0.5, 1));
+      return {
+        ...this.transformPosition(p.position),
+        fill: "white",
+        opacity: 0.1,
+        radiusY: r.y,
+        radiusX: r.x
+      };
+    });
+  }
+
+  readonly base = new Vector2i(0.01, 0.01);
   transformPosition(v: Vector2i) {
-    return v.multiply(this.intBase).add(this.shift);
+    return v
+      .multiply(new Vector2i(0.5, 1))
+      .multiply(this.poolOptions.table.shrink.multiply(this.base))
+      .add(this.poolOptions.table.shift.multiply(this.base))
+      .multiply(this.intBase)
+      .add(this.shift);
   }
 
   get backgroundConfig() {
@@ -93,23 +122,27 @@ export default class PoolStage extends Vue {
     this.backgroundImage.onload = this.redraw;
     this.backgroundImage.src = pool;
   }
+
   mounted() {
     this.fitStageIntoParentContainer();
+    window.removeEventListener("resize", this.fitStageIntoParentContainer);
     window.addEventListener("resize", this.fitStageIntoParentContainer);
   }
 
   fitStageIntoParentContainer() {
     const stage = this.$refs.stage as Vue & Konva.Stage;
-    const container = stage.$el as HTMLDivElement;
-    const containerWidth = container.offsetWidth;
+    if (stage) {
+      const container = stage.$el as HTMLDivElement;
+      const containerWidth = container.offsetWidth;
 
-    const scale = containerWidth / this.stageWidth;
+      const scale = containerWidth / this.stageWidth;
 
-    const stageKonva = stage.getStage();
-    stageKonva.width(this.stageWidth * scale);
-    stageKonva.height(this.stageHeight * scale);
-    stageKonva.scale({ x: scale, y: scale });
-    this.redraw();
+      const stageKonva = stage.getStage();
+      stageKonva.width(this.stageWidth * scale);
+      stageKonva.height(this.stageHeight * scale);
+      stageKonva.scale({ x: scale, y: scale });
+      this.redraw();
+    }
   }
 
   redraw() {
