@@ -14,7 +14,7 @@
         />
       </div>
     </v-navigation-drawer>
-    <pool-stage :pool-state="deducedPoolState" :pool-options="poolOptions"/>
+    <pool-stage :pool-state="deducedPoolState" :pool-options="poolOptions" />
   </v-container>
 </template>
 
@@ -27,7 +27,6 @@ import { PoolState, IPoolState } from "../core/models/PoolState/PoolState";
 import { poolState } from "../../tests/testData/PoolState";
 import { Socket } from "vue-socket.io-extended";
 import { PoolOptions } from "../core/models/PoolOptions";
-import { Vector2i } from "../core/models/PoolState/Vector2i";
 @Component({
   name: "PoolView",
   components: {
@@ -40,7 +39,7 @@ export default class PoolView extends Vue {
 
   poolOptions: PoolOptions = new PoolOptions();
   deducedPoolState: PoolState = new PoolState(poolState);
-  
+
   beforeMount() {
     this.onPoolState(poolState);
     poolState.pockets.forEach((pocket, i) => {

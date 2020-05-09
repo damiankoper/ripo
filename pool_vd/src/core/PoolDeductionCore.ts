@@ -8,11 +8,7 @@ export class PoolDeductionCore {
   readonly pocketCatchRadius = 0.115;
   readonly pockets = [
     new Pocket("Top-left", new Vector2i(0.1, 0.08), this.pocketCatchRadius),
-    new Pocket(
-      "Top-middle",
-      new Vector2i(1.03, 0.04),
-      this.pocketCatchRadius
-    ),
+    new Pocket("Top-middle", new Vector2i(1.03, 0.04), this.pocketCatchRadius),
     new Pocket("Top-right", new Vector2i(1.97, 0.08), this.pocketCatchRadius),
     new Pocket(
       "Botton-right",
@@ -184,7 +180,7 @@ export class PoolDeductionCore {
           if (balls.length > 0) ballsStates[i] = balls[0];
         });
 
-      if (n == 13)console.log(ballsStates);
+      if (n == 13) console.log(ballsStates);
 
       if (
         ballsStates.slice(1).filter(x => x === null).length >=
@@ -192,7 +188,8 @@ export class PoolDeductionCore {
       ) {
         const b = ballsStates[0];
         if (b) {
-          if (n == 13) console.log(_.cloneDeep(b.position), this.pockets[5].position);
+          if (n == 13)
+            console.log(_.cloneDeep(b.position), this.pockets[5].position);
           const pocket = this.pockets.find(p => p.isBallNear(b));
           pocket?.add(b);
         }
