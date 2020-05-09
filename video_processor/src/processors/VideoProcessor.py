@@ -35,7 +35,8 @@ class VideoProcessor:
         self.ballsQueue = Queue()
         self.cueQueue = Queue()
 
-        self.throttle = JoinableQueue()
+        self.ballThrottle = JoinableQueue()
+        self.cueThrottle = JoinableQueue()
 
         self.eventQueueVP = Queue()
         self.eventQueueBP = Queue()
@@ -98,7 +99,7 @@ class VideoProcessor:
 
         self.ballProcess = BallProcessor(
             self.ballsQueue,
-            self.throttle,
+            self.ballThrottle,
             sharedFrame,
             sharedAvgFrame,
             self.frameReadLock,
@@ -108,7 +109,7 @@ class VideoProcessor:
 
         self.cueProcess = CueProcessor(
             self.cueQueue,
-            self.throttle,
+            self.cueThrottle,
             sharedFrame,
             sharedAvgFrame,
             self.frameReadLock,
@@ -127,7 +128,7 @@ class VideoProcessor:
 
         self.ballProcess.start()
         # Póki nie ma implementacji nie może kręcić się na sucho
-        # self.cueProcess.start()
+        self.cueProcess.start()
         self.outputModuleProcess.start()
 
         try:
@@ -163,16 +164,16 @@ class VideoProcessor:
                         np.copyto(numpyFrame, frame)
                         np.copyto(numpyAvgFrame, avg_frame)
 
-                    if not self.throttle.empty():
-                        self.throttle.get()
-                        self.throttle.task_done()
+                    if not self.ballThrottle.empty():
+                        self.ballThrottle.get()
+                        self.ballThrottle.task_done()
+
+                    if not self.cueThrottle.empty():
+                        self.cueThrottle.get()
+                        self.cueThrottle.task_done()
 
                 # Main wait to refresh windows
                 c = cv2.waitKey(1)
-
-                # do włączenia po odpaleniu CP
-                # self.throttle.get()
-                # self.throttle.task_done()
 
         except (KeyboardInterrupt, SystemExit):
             print("VP: Interrupt")
@@ -226,9 +227,11 @@ class VideoProcessor:
         self.ballProcess.terminate()
         self.ballProcess.join()
 
+        self.cueProcess.terminate()
+        self.cueProcess.join()
+
         self.outputModuleProcess.kill()
         #self.outputModuleProcess.terminate()
         #self.outputModuleProcess.join()
 
-        # self.cueProcess.terminate()
-        # self.cueProcess.join()
+

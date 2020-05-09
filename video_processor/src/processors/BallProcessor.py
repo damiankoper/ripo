@@ -62,7 +62,7 @@ class BallProcessor(FrameProcessor):
 
         classificator = Classification()
 
-        classificator.loadModel("data/training/model")
+        classificator.loadModel("data/training/trained_model")
 
         while(1):
 
@@ -180,7 +180,7 @@ class BallProcessor(FrameProcessor):
                     if cropImg.shape == (50, 50, 3):
                         ball_number, _ = classificator.classify(cropImg)
 
-                    if ball_number != 'NaB' and ball_number != 17:
+                    if ball_number != 17:
                         if int(ball_number) <= 8:
                             ball_type = BallType.SOLID
                         else:
@@ -193,13 +193,13 @@ class BallProcessor(FrameProcessor):
 
                 self.queue.put(balls)
 
-                for ball in balls:
-                    cv2.putText(frame, str(ball.number), (int(ball.position.x*self.width), int(ball.position.y*self.height)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
+                # for ball in balls:
+                #      cv2.putText(frame, str(ball.number), (int(ball.position.x*self.width), int(ball.position.y*self.height)),
+                #                  cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), thickness=2)
 
             #cv2.imshow('BP: DETECTED', frame)
-            # cv2.imshow('BP: DIFF', difference)
-            # cv2.imshow('BP: MASKED', masked)
+            #cv2.imshow('BP: DIFF', difference)
+            #cv2.imshow('BP: MASKED', masked)
             #cv2.imshow('BP: THRESH BEFORE', threshBefore)
             #cv2.imshow('BP: AVG FRAME', frameAvg)
 

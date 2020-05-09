@@ -128,18 +128,18 @@ class Classification:
 
         model = keras.models.Sequential()
 
-        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(50, 50, 3)))
-        model.add(keras.layers.Conv2D(32, (3, 3), activation='relu'))
+        model.add(keras.layers.Conv2D(16, (2, 2), activation='relu', input_shape=(50, 50, 3)))
+        model.add(keras.layers.Conv2D(16, (2, 2), activation='relu'))
         model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
         model.add(keras.layers.Dropout(0.25))
 
-        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
-        model.add(keras.layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(keras.layers.Conv2D(16, (2, 2), activation='relu'))
+        model.add(keras.layers.Conv2D(16, (2, 2), activation='relu'))
         model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
         model.add(keras.layers.Dropout(0.25))
 
         model.add(keras.layers.Flatten())
-        model.add(keras.layers.Dense(256, activation='relu'))
+        model.add(keras.layers.Dense(16, activation='relu'))
         model.add(keras.layers.Dense(len(lb.classes_), activation='softmax'))
 
         #tensorboard --logdir data/training/logs/
@@ -184,12 +184,12 @@ class Classification:
 
         #image = image.reshape((1, image.shape[0]))
 
-        #time_s = time.perf_counter()
+        # time_s = time.perf_counter()
         image = np.expand_dims(image, axis=0)
 
         prediction_result = self.model.predict_on_batch(image)
 
-        #print(time.perf_counter() - time_s)
+        # print(time.perf_counter() - time_s)
 
         i = prediction_result.numpy().argmax(axis=1)[0]
         label = self.labelizer.classes_[i]

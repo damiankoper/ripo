@@ -5,31 +5,31 @@ if __name__ == "__main__":
 
     c = Classification()
 
-   # c.genAugmentedDataSet("data/training/trimmed_data", "data/training/augmented_data")
+    #c.genAugmentedDataSet("data/training/trimmed_data", "data/training/augmented_data")
 
-    c.createTrainingData("data/training/augmented_data")
+    #c.createTrainingData("data/training/dataset/augmented_data", True)
 
-    c.training("data/training/model")
+    #c.training("data/training/trained_model", "data/training/pickles")
 
-    c.loadModel("data/training/model")
+    c.loadModel("data/training/trained_model")
 
 
-    im0 = cv2.imread("data/training/test/0.png")
-    im1 = cv2.imread("data/training/test/1.png")
-    im2 = cv2.imread("data/training/test/2.png")
-    im3 = cv2.imread("data/training/test/3.png")
-    im4 = cv2.imread("data/training/test/4.png")
-    im5 = cv2.imread("data/training/test/5.png")
-    im6 = cv2.imread("data/training/test/6.png")
-    im7 = cv2.imread("data/training/test/7.png")
-    im8 = cv2.imread("data/training/test/8.png")
-    im9 = cv2.imread("data/training/test/9.png")
-    im10 = cv2.imread("data/training/test/10.png")
-    im11 = cv2.imread("data/training/test/11.png")
-    im12 = cv2.imread("data/training/test/12.png")
-    im13 = cv2.imread("data/training/test/13.png")
-    im14 = cv2.imread("data/training/test/14.png")
-    im15 = cv2.imread("data/training/test/15.png")
+    im0 = cv2.imread("data/training/tests/test/0.png")
+    im1 = cv2.imread("data/training/tests/test/1.png")
+    im2 = cv2.imread("data/training/tests/test/2.png")
+    im3 = cv2.imread("data/training/tests/test/3.png")
+    im4 = cv2.imread("data/training/tests/test/4.png")
+    im5 = cv2.imread("data/training/tests/test/5.png")
+    im6 = cv2.imread("data/training/tests/test/6.png")
+    im7 = cv2.imread("data/training/tests/test/7.png")
+    im8 = cv2.imread("data/training/tests/test/8.png")
+    im9 = cv2.imread("data/training/tests/test/9.png")
+    im10 = cv2.imread("data/training/tests/test/10.png")
+    im11 = cv2.imread("data/training/tests/test/11.png")
+    im12 = cv2.imread("data/training/tests/test/12.png")
+    im13 = cv2.imread("data/training/tests/test/13.png")
+    im14 = cv2.imread("data/training/tests/test/14.png")
+    im15 = cv2.imread("data/training/tests/test/15.png")
     
 
     im11_w_ruchu_1 = cv2.imread("data/training/tests/test/11_w_ruchu_1.png")
