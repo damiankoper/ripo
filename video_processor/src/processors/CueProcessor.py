@@ -5,7 +5,6 @@ import numpy as np
 
 import time
 
-from ..pool_state.Player import Player, PlayerName
 from ..pool_state.Cue import Cue
 
 class CueProcessor(FrameProcessor):
@@ -73,13 +72,10 @@ class CueProcessor(FrameProcessor):
                 for x1,y1,x2,y2 in lines[0]:
                     cv2.line(frame,(x1,y1),(x2,y2),(0,255,0),2)
 
-                player = Player(PlayerName.A, (0, 255, 0))
-
                 cues = []
 
                 cues.append(Cue(self.normalizeCoordinates((x1, y1)),
-                                self.normalizeCoordinates((x2, y2)),
-                                player))
+                                self.normalizeCoordinates((x2, y2))))
 
 
                 self.queue.put(cues)

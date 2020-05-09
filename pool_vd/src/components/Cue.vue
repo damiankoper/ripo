@@ -27,7 +27,7 @@ export default class CueLine extends Vue {
         this.cue.positionEnd.y
       ],
       strokeWidth: poolData.cue.width,
-      stroke: Color(this.cue.player.color, "hsv").string()
+      stroke: Color('brown').string()
     };
   }
 }

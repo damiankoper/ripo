@@ -6,20 +6,10 @@ class Vector2i {
     + y: int
 }
 
-class Player {
-    + name: Enum{'A', 'B'}
-    + colorHSV: int[H,S,V]
-}
-
 class Cue {
     + positionStart: Vector2i
     + positionEnd: Vector2i
-    + player: Player
 }
-
-note left of Ball
-    Cue ball is {0, SOLID}
-end note
 
 class Ball {
     + number: int
@@ -27,7 +17,6 @@ class Ball {
     + type: Enum('SOLID', 'STRIPED')
 }
 
-Cue o--> Player
 Cue *--> Vector2i
 Ball *--> Vector2i
 

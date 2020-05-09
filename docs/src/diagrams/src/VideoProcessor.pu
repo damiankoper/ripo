@@ -51,7 +51,6 @@ FrameProcessor -|> Process
 class Cue {
     + positionStart: Vector2i
     + positionEnd: Vector2i
-    + player: Player
 }
 
 class Ball {

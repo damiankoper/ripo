@@ -1,4 +1,3 @@
-import { PlayerName } from "../../src/core/models/PoolState/Player";
 import { PoolState } from "../../src/core/models/PoolState/PoolState";
 import { BallType } from "../../src/core/models/PoolState/Ball";
 import { Vector2i } from "../../src/core/models/PoolState/Vector2i";
@@ -7,10 +6,6 @@ import { Pocket } from '@/core/models/Deduction/Pocket';
 export const poolState: PoolState = {
   cues: [
     {
-      player: {
-        color: [0, 100, 100],
-        name: PlayerName.A
-      },
       positionStart: new Vector2i(0.4, 1.18),
       positionEnd: new Vector2i(0.6, 0.6)
     }
