@@ -1,5 +1,4 @@
 @startuml pull_state_cd
-title PoolState
 
 class Vector2i {
     + x: int

@@ -1,8 +1,8 @@
 {
   "python.pythonPath": "/home/damian_koper/.local/share/virtualenvs/ripo-sALwwkae/bin/python",
   "python.linting.pylintArgs": ["--extension-pkg-whitelist=cv2"],
-  "spellright.language": ["Polish"],
-  "spellright.documentTypes": ["markdown", "plaintext"],
+  "spellright.language": ["Polish", "en_US"],
+  "spellright.documentTypes": ["markdown", "plaintext", "latex"],
   "latex-workshop.latex.outDir": "../out",
   "plantuml.diagramsRoot": "docs/src/diagrams/src",
   "plantuml.exportOutDir": "docs/src/diagrams/out",
@@ -12,5 +12,8 @@
     "**/.git/subtree-cache/**": true,
     "**/node_modules/*/**": true,
     "**/data/**/*": true
+  },
+  "[latex]": {
+    "editor.wordWrap": "wordWrapColumn"
   }
 }

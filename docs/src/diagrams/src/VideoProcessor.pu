@@ -1,31 +1,30 @@
 @startuml video_processor_cd
-title VideoProcessor
 allowmixing
 
-note as note
- <b>frameValue</b> contains
- frame data shared
- between processors using Locks
-end note
+
 
 class VideoProcessor <<main>>{
-    + capture(ip, port, size: (w, h), fps)
-    + record(ip, port, size: (w, h), fps)
-
-    + frameValue: Value(np.array)
-    + frameReadLock: Lock
+    + capture(...)
+    + record(...)
 }
 
 abstract class FrameProcessor <<process>>{
-    + frameValue: Value(np.array)
+    + queue: Queue
+    + frame: RawArray
+    + avgFrame: RawArray
+    + eventQueue: Queue
 }
 
+note left of FrameProcessor
+<b>frame</b> and <b>avgFrame</b> contain
+frame data shared
+between processors using Locks
+end note
+
 class CueProcessor <<process>> {
-    + cues: Cue[]
 }
 
 class BallProcessor <<process>> {
-    + balls: Ball[]
 }
 
 class OutputModule <<process>> {
@@ -34,7 +33,7 @@ class OutputModule <<process>> {
 }
 
 BallProcessor ..> OutputModule
-CueProcessor ..> OutputModule 
+CueProcessor ..> OutputModule
 
 FrameProcessor <|--- BallProcessor
 FrameProcessor <|--- CueProcessor
@@ -64,13 +63,30 @@ class PoolState {
     + cues: Cue[]
 }
 
+class InitialFrameProcessing
+class Classification
+VideoProcessor .> InitialFrameProcessing
+BallProcessor .left.> Classification
 
 cloud WebSocket
 
-OutputModule *--> PoolState
-OutputModule ..> WebSocket : Sends PoolState to >
+class QueueWatcher <<thread>>{
+    queue: Queue
+    list: list
+    lock: Lock
+    server: WebsocketServer
+}
+class WebsocketServer <<thread>>
 
-CueProcessor "2" *--> "1" Cue
-BallProcessor "16" *--> "1" Ball
+OutputModule *--> PoolState
+OutputModule *--> QueueWatcher
+OutputModule *--> WebsocketServer
+WebsocketServer ..> WebSocket : Sends\nPoolState to >
+WebsocketServer .>PoolState
+
+QueueWatcher .> WebsocketServer
+
+CueProcessor ..> Cue
+BallProcessor ..>  Ball
 
 @enduml
