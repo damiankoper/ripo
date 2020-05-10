@@ -1,0 +1,38 @@
+@startuml pool_state_sd
+box "VideoProcessor" #LightBlue
+participant CueProcessor
+participant BallProcessor
+Boundary OutputModule
+end box
+box "PoolVD" #LightCyan
+Boundary PoolVD
+actor User
+end box
+
+
+
+== Balls ==
+BallProcessor --> OutputModule : Balls detected
+activate OutputModule
+OutputModule -> OutputModule : Update\nPoolState
+OutputModule --> PoolVD : emit('poolState', poolState)
+deactivate OutputModule
+activate PoolVD
+PoolVD -> PoolVD : Process\nPoolState
+PoolVD -> PoolVD : Deduce\nactual PoolState
+PoolVD -> User : Draw deduced\nPoolState 
+deactivate PoolVD
+
+== Cue ==
+CueProcessor --> OutputModule : Cues detected
+activate OutputModule
+OutputModule -> OutputModule : Update\nPoolState
+OutputModule --> PoolVD : emit('poolState', poolState)
+deactivate OutputModule
+activate PoolVD
+PoolVD -> PoolVD : Process\nPoolState
+PoolVD -> PoolVD : Deduce\nactual PoolState
+PoolVD -> User : Draw deduced\nPoolState 
+deactivate PoolVD
+
+@enduml

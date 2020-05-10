@@ -1,0 +1,32 @@
+@startuml pool_vd_events_sd
+box "PoolVD" #LightCyan
+actor User
+Boundary PoolVD
+end box
+box "VideoProcessor" #LightBlue
+Boundary OutputModule
+participant BallProcessor
+participant CueProcessor
+participant VideoProcessor
+end box
+
+
+==Event propagation==
+User --> PoolVD : Update\ninit duration
+PoolVD --> OutputModule : emit('initDurationChange', value)
+activate OutputModule
+OutputModule -> OutputModule : Process event
+OutputModule -> BallProcessor : Add event\nto queue
+activate BallProcessor
+BallProcessor --> BallProcessor : Ignore\nunknown event
+deactivate BallProcessor
+OutputModule -> CueProcessor : Add event\nto queue
+activate CueProcessor
+CueProcessor --> CueProcessor : Ignore\nunknown event
+deactivate CueProcessor
+OutputModule -> VideoProcessor : Add event\nto queue
+deactivate OutputModule
+activate VideoProcessor
+VideoProcessor --> VideoProcessor : Process\n event
+deactivate VideoProcessor
+@enduml

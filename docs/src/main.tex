@@ -123,7 +123,7 @@ Komponent \textit{VideoProcessor} jest równocześnie serwerem obsługującym po
 Przepływ danych od materiału wideo do użytkownika zobrazowane zostało na diagramie z rysunku \ref{dataflow}.
 
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=10cm]{./diagrams/out/data_flow.png}
     \caption{Przepływ danych.}
@@ -136,7 +136,7 @@ Detekcja, klasyfikacja, wyświetlania i dedukcja są złożonymi procesami używ
 
 \subsection{Komponent VideoProcessor}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=14cm]{./diagrams/out/video_processor_cd.png}
     \caption{Diagram klas komponentu VideoProcessor.}
@@ -157,8 +157,6 @@ Procesy \textbf{BallProcessor} i \textbf{CueProcessor} przed rozpoczęciem przet
 
 Po zakończeniu przetwarzania każdej klatki \textbf{BallProcessor} i \textbf{CueProcessor} wysyłają wynik swoich działań w postaci obiektów \lstinline{Ball} lub \lstinline{Cue} do kolejek modułu OutputModule.
 
-
-
 \subsubsection{OutputModule}
 
 OutputModule jest osobnym procesem, który obsługuje trzy procedury:
@@ -168,22 +166,56 @@ OutputModule jest osobnym procesem, który obsługuje trzy procedury:
     \item Obserwator kolejki wykrytych kii.
 \end{enumerate}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
-    \includegraphics[width=10cm]{./diagrams/out/pull_state_cd.png}
+    \includegraphics[width=9cm]{./diagrams/out/pull_state_cd.png}
     \caption{Struktura PoolState.}
     \label{poolstate}
 \end{figure}
 
-Moduł zawiera również ostatni aktualny wykryty stan stołu. Strukturę te prezentuje diagram na rysunku nr \ref{poolstate}.
+Moduł zawiera również ostatni aktualny wykryty stan stołu. Strukturę te prezentuje diagram na rysunku \ref{poolstate}.
 Obserwatory obserwujące kolejkę, po umieszczeniu w nich danych przez moduły \textbf{BallProcessor} i \textbf{CueProcessor} aktualizują obiekt \lstinline{PoolState} i wymuszają wysłanie stanu stołu do klientów przez serwer.
 
 Protokół WebSocket umożliwia komunikację full-duplex w dowolny sposób. W celu ustandaryzowania komunikacji pomiędzy klientami, a serwerem zdecydowano się wybrać zorientowaną zdarzeniowo bibliotekę Socket.IO \cite{socket.io}.
 
-% TODO Damian: Opisać Eventy
+Proces przesyłania stanu stołu do komponentu \textbf{PoolVD} obrazuje diagram na rysunku \ref{pool_state_sd}. Obsługę zdarzenia zmiany opcji czasu trwania okresu inicjalizacji z poziomu interfejsu użytkownika prezentuje diagram na rysunku \ref{pool_vd_events_sd}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=15cm]{./diagrams/out/pool_state_sd.png}
+    \caption{Proces przesyłania stanu stołu do komponentu \textbf{PoolVD}.}
+    \label{pool_state_sd}
+\end{figure}
+
+
+Każda z klas obsługujących zdarzenia ma dostęp do swojej kolejki, w której \textbf{OutputModule} umieszcza przychodzące obiekty zdarzeń. Klasa obsługuje tylko takie zdarzenia, których obsługa została przewidziana i ignoruje nieznane. Rozwiązanie to pozwala na łatwe rozszerzenie konfiguracji i zachowania każdej z klas bez żadnego wpływu na inne klasy - wystarczy tylko zaimplementować odbiór i obsługę nowego zdarzenia.
+
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=15cm]{./diagrams/out/pool_vd_events_sd.png}
+    \caption{Obsługa zdarzenia wywołanego przez \textbf{PoolVD}.}
+    \label{pool_vd_events_sd}
+\end{figure}
+
+\subsection{Komponent PoolVD}
+Komponent PoolVD odpowiada za wyświetlanie otrzymanego stanu stołu, odrzucanie stanów nieprawdopodobnych i śledzenie wpadnięć bili do łuz. Wysyła on również zdarzenia do komponentu \textbf{VideoProcessor}, które aktualizują parametry detekcji i wywołują zdefiniowane akcje.
+
+Komponent tworzy historię stanów stołu. Na tej podstawie wykonuje następujące procedury dla każdej bili:
+
+\begin{enumerate} [noitemsep]
+    \item Wyświetlanie ostatniego otrzymanego stanu. Eliminuje to tymczasowe zniknięcia bili spowodowane błędem detekcji, klasyfikacji, albo zasłonięciem bili przez inny obiekt.
+    \item Odrzucenie stanów nieprawdopodobnych. Na podstawie stanów poprzednich, przychodzący stan bili może być odrzucony, jeśli bila przemieściła się nienaturalnie szybko w inną część stołu. Odrzuca to pojedyncze błędy klasyfikacji. Heurystyką używaną w tym wnioskowaniu jest prędkość średnia bili uzyskana na podstawie poprzednich stanów.
+    \item Wykrycie wpadnięcia bili do łuzy. Bila jest uznana za wpadniętą do łuzy jeśli przez konfigurowalną liczbę stanów była niewykryta, a jej ostatnia znana była pozycją blisko danej łuzy.
+\end{enumerate}
+
+Każda z procedur ma konfigurowalną precyzję podaną jako liczbę stanów.
 
 \section{Detekcja i klasyfikacja}
 % TODO Wszystko zaczyna się w Videoprocessor tu się pozyskuje obraz i robi wstępny proces jego przetwarzania - wycinanie itd, to jak wycinać i co wysłać dalej jest ustalane w procesie inicjalizacji
+
+%Ważne opisać współrzędne znormalizowane (0,0) do (2,1)
+
 \subsection{Proces inicjalizacji}
 % Uśrednianie klatki
 % detekcja stoł↓
@@ -193,21 +225,50 @@ Protokół WebSocket umożliwia komunikację full-duplex w dowolny sposób. W ce
 
 \subsection{Produkty przetwarzania wstępnego}
 % tutaj skrinki możę ze 2 tej średniej klatki i obecnej wyciętej
-% pamiętaj o \ref w tekście i [h] to latex to ładnie ułoży
+% pamiętaj o \ref w tekście i [!ht] to latex to ładnie ułoży
 
 \subsection{Bile}
 %cały proces opisać BP
-
+% Ważne opisz konfigurowalne parametry z poziomu frontu
 \subsection{Kij}
 
 %cały proces opisać CP
+% Ważne opisz konfigurowalne parametry z poziomu frontu
 
-\section{Wyświetlanie i dedukcja}
-% TODO Damian
+\section{Interface użytkownika}
+
+Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa stworzona z wykorzystaniem frameworka Vue i Vuetify, na komponencie Canvas rysuje stół wraz z aktualną, wydedukowaną zawartością łuz (rysunek \ref{pool1}). Białe półprzezroczyste elipsy wokół łuz obrazują obszar działania dedukcji wpadnięcia bili do łuzy. Pełny widok interfejsu graficznego przedstawia rysunek \ref{interface}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=15cm]{./images/pool1.png}
+    \caption{Widok stołu w komponencie \textbf{PoolVD}.}
+    \label{pool1}
+\end{figure}
+
+Aplikacja posiada wysuwalny panel (rysunek \ref{options}), z którego poziomu można zmieniać parametry detekcji i dedukcji. Zmiany ustawień detekcji generują opisane wcześniej zdarzenia, które odbierane są przez komponent \textbf{VideoProcessor}. Zmiany ustawień dedukcji mają efekt tylko na poziomie komponentu \textbf{PoolVD}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[height=20cm]{./images/options.png}
+    \caption{Panel opcji w komponencie \textbf{PoolVD}.}
+    \label{options}
+\end{figure}
+
+Z racji na możliwość powstania przesunięcia i zaburzeń proporcji stołu w kamerze ustawienia pozwalają na zmianę przesunięcia i skali wyświetlanych elementów stołu. Jest to końcowym etapem bezpośrednio poprzedzającym wyświetlanie elementów stołu, więc dedukcja i analiza pozycji odbywa się na danych otrzymanych od komponentu \textbf{VideoProcessor}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{./images/interface.png}
+    \caption{Interfejs komponentu \textbf{PoolVD} z testowymi danymi.}
+    \label{interface}
+\end{figure}
+
 \section{Uruchomienia systemu}
 % TODO Damian
 \section{Podsumowanie i wnioski}
-% TODO Damian
+% TODO Damian i MAti
+\clearpage
 \newpage
 
 \printbibliography
