@@ -237,9 +237,9 @@ Każda z procedur ma konfigurowalną precyzję podaną jako liczbę stanów.
 
 \section{Interface użytkownika}
 
-Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa stworzona z wykorzystaniem frameworka Vue i Vuetify, na komponencie Canvas rysuje stół wraz z aktualną, wydedukowaną zawartością łuz (rysunek \ref{pool1}). Białe półprzezroczyste elipsy wokół łuz obrazują obszar działania dedukcji wpadnięcia bili do łuzy. Pełny widok interfejsu graficznego przedstawia rysunek \ref{interface}.
+Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa stworzona z wykorzystaniem frameworka Vue i Vuetify, na komponencie Canvas rysuje stół wraz z aktualną, wydedukowaną zawartością łuz (rysunek \ref{pool1}). Rysowanie elementów odbywa się ze wsparciem frameworka KonvaJS\cite{konva}. Białe półprzezroczyste elipsy wokół łuz obrazują obszar działania dedukcji wpadnięcia bili do łuzy. Pełny widok interfejsu graficznego przedstawia rysunek~\ref{interface}.
 
-\begin{figure}[!ht]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=15cm]{./images/pool1.png}
     \caption{Widok stołu w komponencie \textbf{PoolVD}.}
@@ -248,16 +248,16 @@ Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa
 
 Aplikacja posiada wysuwalny panel (rysunek \ref{options}), z którego poziomu można zmieniać parametry detekcji i dedukcji. Zmiany ustawień detekcji generują opisane wcześniej zdarzenia, które odbierane są przez komponent \textbf{VideoProcessor}. Zmiany ustawień dedukcji mają efekt tylko na poziomie komponentu \textbf{PoolVD}.
 
-\begin{figure}[!ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[height=20cm]{./images/options.png}
+    \includegraphics[height=19cm]{./images/options.png}
     \caption{Panel opcji w komponencie \textbf{PoolVD}.}
     \label{options}
 \end{figure}
 
 Z racji na możliwość powstania przesunięcia i zaburzeń proporcji stołu w kamerze ustawienia pozwalają na zmianę przesunięcia i skali wyświetlanych elementów stołu. Jest to końcowym etapem bezpośrednio poprzedzającym wyświetlanie elementów stołu, więc dedukcja i analiza pozycji odbywa się na danych otrzymanych od komponentu \textbf{VideoProcessor}.
 
-\begin{figure}[!ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{./images/interface.png}
     \caption{Interfejs komponentu \textbf{PoolVD} z testowymi danymi.}
@@ -265,9 +265,36 @@ Z racji na możliwość powstania przesunięcia i zaburzeń proporcji stołu w k
 \end{figure}
 
 \section{Uruchomienia systemu}
-% TODO Damian
-\section{Podsumowanie i wnioski}
-% TODO Damian i MAti
+W calu uruchomienia systemu należy udostępnić źródło danych i uruchomić dwa główne komponenty - \textbf{VideoProcessor} i \textbf{PoolVD}. Wszystkie polecenia muszą być wykonane z katalogu głównego projektu.
+
+\subsubsection{Źródło danych}
+Źródłem danych może być dowolny strumień wideo przesłany z użyciem protokołu UDP. Podczas pracy nad projektem źródłem danych był plik MP4 streamowany z użyciem skryptu za pomocą komendy:
+\begin{lstlisting}
+$ ./video_processor/test/stream.sh ./video_processor/test/videos/test3.mp4 127.0.0.1:8444
+\end{lstlisting}
+Powyższa komenda wysyła dane na port 8444 hosta lokalnego wykorzystując narzędzie ffmpeg.
+\subsubsection{VideoProcessor}
+Komponent \textbf{VideoProcessor} powinien być uruchomiony za pomocą następującej komendy:
+\begin{lstlisting}
+$ pipenv install
+$ pipenv shell
+$ python3 -m video_processor.src.main -p 8444 -c 8888 -w 1280 -ht 720 -f 30
+\end{lstlisting}
+Argumentami komendy są kolejno port źródła danych, port nasłuchu klientów \textbf{PoolVD}, wysokość klatki, szerokość klatki i liczba klatek na sekundę materiału źródłowego. Uruchomienie modułu wymaga wcześniejszego zainstalowania zależności zdefiniowanych w pliku Pipfile narzędziem Pipenv.
+\subsubsection{PoolVD}
+Uruchomienie komponentu \textbf{PoolVD} odbywa się w oparciu o środowisko NodeJS i narzędzia VueCLI4 \cite{vuecli} z wykorzystaniem wersji deweloperskiej serwera. Port połączania z komponentem \textbf{VideoProcessor} (8888) w obecnej wersji jest na stałe wpisany w kod. Aplikacja dostępna jest pod adresem \lstinline{localhost:8080}.
+\begin{lstlisting}
+$ ( cd pool_vd && npm install )
+$ ( cd pool_vd && npm run serve )
+\end{lstlisting}
+
+\section{Podsumowanie}
+
+\subsection{Zrealizowane założenia}
+
+\subsection{Możliwości rozwoju}
+
+
 \clearpage
 \newpage
 
