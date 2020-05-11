@@ -68,17 +68,13 @@ class CueProcessor(FrameProcessor):
             maxLineGap = 140
             lines = cv2.HoughLinesP(thresh,1,np.pi/180,200,minLineLength,maxLineGap)
 
+            cues = []
             if lines is not None:            
                 for x1,y1,x2,y2 in lines[0]:
                     cv2.line(frame,(x1,y1),(x2,y2),(0,255,0),2)
-
-                cues = []
-
                 cues.append(Cue(self.normalizeCoordinates((x1, y1)),
                                 self.normalizeCoordinates((x2, y2))))
-
-
-                self.queue.put(cues)
+            self.queue.put(cues)
 
             cv2.imshow('CP: DETECTED', frame)
 

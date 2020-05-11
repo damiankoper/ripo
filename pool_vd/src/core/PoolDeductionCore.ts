@@ -89,6 +89,8 @@ export class PoolDeductionCore {
       const last = _.last(this.getBallHistory(n, this.precision.historyStates));
       if (last) lastState.balls.push(_.cloneDeep(last));
     }
+    console.log(lastState.cues);
+    
     return lastState;
   }
 
@@ -180,16 +182,12 @@ export class PoolDeductionCore {
           if (balls.length > 0) ballsStates[i] = balls[0];
         });
 
-      if (n == 13) console.log(ballsStates);
-
       if (
         ballsStates.slice(1).filter(x => x === null).length >=
         this.precision.inPocketStates
       ) {
         const b = ballsStates[0];
         if (b) {
-          if (n == 13)
-            console.log(_.cloneDeep(b.position), this.pockets[5].position);
           const pocket = this.pockets.find(p => p.isBallNear(b));
           pocket?.add(b);
         }

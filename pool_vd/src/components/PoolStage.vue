@@ -62,18 +62,15 @@ export default class PoolStage extends Vue {
 
   get balls() {
     return this.poolState.balls.map(ball => {
-      ball.position = ball.position.clone();
-      ball.position = this.transformPosition(ball.position);
+      ball.position = this.transformPosition(ball.position.clone());
       return ball;
     });
   }
 
   get cues() {
     return this.poolState.cues.map(cue => {
-      cue.positionStart = cue.positionStart.clone();
-      cue.positionEnd = cue.positionEnd.clone();
-      cue.positionStart = this.transformPosition(cue.positionStart);
-      cue.positionEnd = this.transformPosition(cue.positionEnd);
+      cue.positionStart = this.transformPosition(cue.positionStart.clone());
+      cue.positionEnd = this.transformPosition(cue.positionEnd.clone());
       return cue;
     });
   }
