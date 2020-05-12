@@ -1,19 +1,20 @@
 from threading import Thread, Lock
 from multiprocessing import Queue
+from concurrent.futures import ProcessPoolExecutor
 from .WebsocketServer import WebsocketServer
 import asyncio
 
 
 class QueueWatcher(Thread):
-    def __init__(self, queue: Queue, list: list, lock: Lock, server: WebsocketServer, loop):
+    def __init__(self, queue: Queue, datalist: list, lock: Lock, server: WebsocketServer, loop, emit = True):
         Thread.__init__(self)
         self.queue = queue
         self.lock = lock
-        self.list = list
+        self.datalist = datalist
         self.server = server
 
         self.loop = loop
-
+        self.emit = emit
         self.daemon = True
 
     def run(self):
@@ -22,10 +23,8 @@ class QueueWatcher(Thread):
 
     async def _run(self):
         while 1:
-            hehe = 2
             value = self.queue.get()
             with self.lock:
-                self.list[:] = value
-                self.server.poolState.balls = self.list
-                await self.server.emitPoolState()
-                await self.server.sio.sleep(0)
+                if self.datalist != value:
+                    self.datalist[:] = value
+                    await self.server.emitPoolState()
