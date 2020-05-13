@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     #c.createTrainingData("data/training/dataset/augmented_data", True)
 
-    #c.training("data/training/trained_model", "data/training/pickles")
+    c.training("data/training/trained_model", "data/training/pickles")
 
     c.loadModel("data/training/trained_model")
 
