@@ -89,8 +89,6 @@ export class PoolDeductionCore {
       const last = _.last(this.getBallHistory(n, this.precision.historyStates));
       if (last) lastState.balls.push(_.cloneDeep(last));
     }
-    console.log(lastState.cues);
-    
     return lastState;
   }
 

@@ -191,7 +191,7 @@ class BallProcessor(FrameProcessor):
                         balls.append(Ball(int(ball_number), self.normalizeCoordinates(
                             (n[0], n[1])), ball_type, timeMS - (timeMS//1000000*1000000)))
 
-                self.queue.put(balls)
+            self.queue.put(balls)
 
                 # for ball in balls:
                 #      cv2.putText(frame, str(ball.number), (int(ball.position.x*self.width), int(ball.position.y*self.height)),

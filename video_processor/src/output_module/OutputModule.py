@@ -45,11 +45,12 @@ class OutputModule(Process):
         ballQueueWatcher = QueueWatcher(
             self.ballsQueue, self.poolState.balls, self.poolStateLock, self.websocketServer,  loop)
 
-        # cueQueueWatcher = QueueWatcher(
-        #    self.cueQueue, self.poolState.cues, self.poolStateLock, self.websocketServer)
+        
+        #cueQueueWatcher = QueueWatcher(
+        #    self.cueQueue, self.poolState.cues, self.poolStateLock, self.websocketServer, loop, False)
 
         ballQueueWatcher.start()
-        # cueQueueWatcher.start()
+        #cueQueueWatcher.start()
 
         try:
             self.websocketServer.run()
