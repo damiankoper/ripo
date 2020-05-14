@@ -16,6 +16,7 @@
 \usepackage{tikz}
 \usepackage[bf]{caption}
 \usepackage{amsmath}
+\usepackage{placeins}
 
 \renewcommand{\baselinestretch}{1.5}
 
@@ -116,14 +117,14 @@ Stworzony system składa się z dwóch głównych komponentów:
 
 Komponent \textit{VideoProcessor} zajmuje się przetwarzaniem wideo i komunikacją z komponentem \textit{PoolVD}. Pozyskuje on obraz dostarczony poprzez strumieniem używającym protokołu UDP. Nie użyto tutaj protokołu TCP, ponieważ analiza stołu powinna odbywać się w czasie rzeczywistym i rozwiązanie to wprowadziłoby dodatkowy element synchronizacji, który mógłby mieć wpływ na dostarczany obraz.
 
-Źródłem obrazu może być klip wideo wysyłany z użyciem narzędzie \textit{ffmpeg}, albo obraz na żywo z kamery RaspberryPI. Oba te rozwiązania zostały przetestowane. Wykorzystanie strumienia sieciowego jako źródła obrazu jest rozwiązaniem uniwersalnym, ponieważ oferuje stabilny interface po stronie komponentu \textit{VideoProcessor}.
+Źródłem obrazu może być klip wideo wysyłany z użyciem narzędzie \textit{ffmpeg}, albo obraz na żywo z kamery RaspberryPI. Oba te rozwiązania zostały przetestowane. Wykorzystanie strumienia sieciowego jako źródła obrazu jest rozwiązaniem uniwersalnym, ponieważ oferuje stabilny interfejs po stronie komponentu \textit{VideoProcessor}.
 
 Komponent \textit{VideoProcessor} jest równocześnie serwerem obsługującym połączenia zgodne z protokołem WebSocket. Umożliwia to na szybkie dostarczanie danych wyjściowych do dowolnej liczby klientów. Umożliwia to również na opartą na zdarzeniach komunikację pomiędzy klientami wyświetlającymi dane, omówioną w dalszej części sprawozdania. Protokół WebSocket, w przeciwieństwie do HTTP do dwukierunkowej komunikacji wykorzystuje zawsze jeden strumień.
 
 Przepływ danych od materiału wideo do użytkownika zobrazowane zostało na diagramie z rysunku \ref{dataflow}.
 
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=10cm]{./diagrams/out/data_flow.png}
     \caption{Przepływ danych.}
@@ -136,7 +137,7 @@ Detekcja, klasyfikacja, wyświetlania i dedukcja są złożonymi procesami używ
 
 \subsection{Komponent VideoProcessor}
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=14cm]{./diagrams/out/video_processor_cd.png}
     \caption{Diagram klas komponentu VideoProcessor.}
@@ -163,10 +164,10 @@ OutputModule jest osobnym procesem, który obsługuje trzy procedury:
 \begin{enumerate} [noitemsep]
     \item Serwer komunikacji zewnętrznej - \lstinline{WebSocketServer}.
     \item Obserwator kolejki wykrytych bili.
-    \item Obserwator kolejki wykrytych kii.
+    \item Obserwator kolejki wykrytych kijów.
 \end{enumerate}
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=9cm]{./diagrams/out/pull_state_cd.png}
     \caption{Struktura PoolState.}
@@ -180,7 +181,7 @@ Protokół WebSocket umożliwia komunikację full-duplex w dowolny sposób. W ce
 
 Proces przesyłania stanu stołu do komponentu \textbf{PoolVD} obrazuje diagram na rysunku \ref{pool_state_sd}. Obsługę zdarzenia zmiany opcji czasu trwania okresu inicjalizacji z poziomu interfejsu użytkownika prezentuje diagram na rysunku \ref{pool_vd_events_sd}.
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./diagrams/out/pool_state_sd.png}
     \caption{Proces przesyłania stanu stołu do komponentu \textbf{PoolVD}.}
@@ -191,7 +192,7 @@ Proces przesyłania stanu stołu do komponentu \textbf{PoolVD} obrazuje diagram 
 Każda z klas obsługujących zdarzenia ma dostęp do swojej kolejki, w której \textbf{OutputModule} umieszcza przychodzące obiekty zdarzeń. Klasa obsługuje tylko takie zdarzenia, których obsługa została przewidziana i ignoruje nieznane. Rozwiązanie to pozwala na łatwe rozszerzenie konfiguracji i zachowania każdej z klas bez żadnego wpływu na inne klasy - wystarczy tylko zaimplementować odbiór i obsługę nowego zdarzenia.
 
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./diagrams/out/pool_vd_events_sd.png}
     \caption{Obsługa zdarzenia wywołanego przez \textbf{PoolVD}.}
@@ -213,88 +214,88 @@ Każda z procedur ma konfigurowalną precyzję podaną jako liczbę stanów.
 
 \section{Detekcja i klasyfikacja}
 
-Cały proces detekcji i klasyfikacji rozpoczyna się w \textbf{VideoProcessor} gdzie pozyskiwany jest obraz i wykonywany jest wstępny proces jego przetwarzania. Przetwarzanie obrazu odbywa się z wykorzystaniem bibliotekii OpenCV \cite{OpenCV}.
+Cały proces detekcji i klasyfikacji rozpoczyna się w \textbf{VideoProcessor} gdzie pozyskiwany jest obraz i wykonywany jest wstępny proces jego przetwarzania. Przetwarzanie obrazu odbywa się z wykorzystaniem biblioteki OpenCV \cite{OpenCV}.
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./images/obrazki/vp/original.png}
-    \caption{Oryginalna klatka pozyskiwana w \textbf{VideoProcessor}}
+    \caption{Oryginalna klatka pozyskiwana w \textbf{VideoProcessor}.}
     \label{vp_original}
 \end{figure}
 
 \subsection{Proces inicjalizacji}
 
-Proces inicjalizacji powinien odbywać się na pustym stole, przed rozpoczęciem gry. Jego głównym celem jest uzyskanie uśrednionej klatki obrazu zawierającej pusty stół, który w kolejnych etapach odejmowany jest od aktualnej klatki obrazu w celu wyizolowania istotnych z punktu widzenia detekcji elementów – bil i kijów. Proces inicjalizacji zwraca obraz tła – pusty stół, oraz ustala sposób wycinania i obracania kolejnych klatek już po czasie trwania jednej klatki, jednak dłuższy czas jego trwania pozwala na uzyskanie lepiej uśrednionej klatki i lepszej macierzy transformacji. 
+Proces inicjalizacji powinien odbywać się na pustym stole, przed rozpoczęciem gry. Jego głównym celem jest uzyskanie uśrednionej klatki obrazu zawierającej pusty stół, który w kolejnych etapach odejmowany jest od aktualnej klatki obrazu w celu wyizolowania istotnych z punktu widzenia detekcji elementów – bil i kijów. Proces inicjalizacji zwraca obraz tła – uśredniony pusty stół. Ustala również sposób wycinania i obracania kolejnych klatek. Dane potrzebne do dalszego przetwarzania dostępne są już po przeanalizowaniu jednej klatki, jednak dłuższy czas jego trwania pozwala na uzyskanie lepiej uśrednionej klatki i lepszej macierzy transformacji. 
+\clearpage
 
-\newpage
 Etapy przetwarzania podczas procesu inicjalizacji to kolejno:
-
-\begin{enumerate} [noitemsep]
-    \item Uśrednianie klatki
-    \item Detekcja stołu, gdzie:
+    \begin{enumerate} [noitemsep]
+        \item Uśrednianie klatki
+        \item Detekcja stołu (na podstawie uśrednionej klatki).
+        \item Polepszanie macierzy transformacji (na podstawie uśrednionej klatki).
+    \end{enumerate}
     
-    Na podstawie kolorów stołu (kolor stołu konfigurowalny jest z poziomu interfejsu użytkownika) dla uśrednionej klatki tworzona jest maska przedstawiona na rysunku \ref{pool_table_mask}.
+    Na podstawie kolorów stołu, który konfigurowalny jest z poziomu interfejsu użytkownika, dla uśrednionej klatki tworzona jest maska przedstawiona na rysunku \ref{pool_table_mask}.
+    % TODO: Jak tworzona jest ta maska? przestrzeń HSV range opisać, lepiej niż RGB, lepsza interpolacja
 
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/inicjalizacja/pool_table_mask.png}
-        \caption{Uzyskiwana w procesie inicjalizacji maska}
+        \caption{Uzyskiwana w procesie inicjalizacji maska.}
         \label{pool_table_mask}
     \end{figure}
 
-    \newpage
 
-	W otrzymanej masce znajdywany jest największy kontur do którego zostaje dopasowany prostokąt co przedstawione zostału na rysunku \ref{detected_pool_table}.
+    W otrzymanej masce znajdywany jest największy kontur, do którego zostaje dopasowany prostokąt, co przedstawione zostało na rysunku \ref{detected_pool_table}. % TODO: JAk te kontury są znajdowane? Link do algorytmu/doców cv1
 
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/inicjalizacja/detected_pool_table.png}
-        \caption{Wykryty stół}
+        \caption{Wykryty stół.}
         \label{detected_pool_table}
     \end{figure}
 
-    \item Polepszanie macierzy transformacji, gdzie:
 
-    Granice znalezionego prostokąta wykorzystywane są do utworzenia/polepszenia macierzy transformacji – która pozwala na odpowiednie wycięcie i obrócenie stołu w celu wypełnienia przez niego ramki.
-
-\end{enumerate}
+    Granice znalezionego prostokąta wykorzystywane są do utworzenia, a potem polepszenia macierzy transformacji – która pozwala na odpowiednie wycięcie i obrócenie stołu w celu wypełnienia przez niego ramki.
+    % TODO: Jak działa ta transformacja perspektywiczna + Link do algorytmu
 
 
 \subsection{Produkty przetwarzania wstępnego}
 
 Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysunku \ref{avg_frame} oraz odpowiednio wycięta aktualna klatka obrazu przedstawiona na rysunku \ref{warped_frame}. Obie te klatki przekazywane są dalej do kolejnych procesorów – \textbf{BallProcessor} i \textbf{CueProcessor}, a \textbf{VideoProcessor} zajmuje się dalej, nie czekając, przetwarzaniem kolejnej klatki obrazu.
 
-\newpage
 
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
     \includegraphics[width=15cm]{./images/obrazki/ifp/avg_frame.png}
-    \caption{Uśredniona klatka}
+    \caption{Uśredniona i wycięta klatka.}
     \label{avg_frame}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
     \includegraphics[width=15cm]{./images/obrazki/ifp/warped_frame.png}
-    \caption{Odpowiednio wycięta aktualna klatka obrazu}
+    \caption{Odpowiednio wycięta aktualna klatka obrazu.}
     \label{warped_frame}
 \end{figure}
 
+\clearpage
+
 \subsection{Bile}
 
-\begin{enumerate} [noitemsep]
+\subsubsection{Detekcja}
 
-    \item Od odpowiednio wyciętej aktualnej klatki obrazu odejmowane jest tło  oraz wykonywana jest konwersja do skali szarości. Uzyskiwany w ten sposób efekt przedstawiony został na rysunku \ref{bp_diff}.
+    Od odpowiednio wyciętej aktualnej klatki obrazu odejmowane jest tło  oraz wykonywana jest konwersja do skali szarości. Uzyskiwany w ten sposób efekt przedstawiony został na rysunku~\ref{bp_diff}.
 
-    \begin{figure}[!ht]
+    \begin{figure}[h]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/bp_diff.png}
-        \caption{Różnica aktualnej klatki z klatką uśrednioną w skali szarości}
+        \caption{Różnica aktualnej klatki z klatką uśrednioną w skali szarości.}
         \label{bp_diff}
     \end{figure}
 
 
-    \item Wykonywane jest progowanie w celu uzyskania maski (wartość progowa konfigurowalna jest dynamicznie z poziomu interfejsu użytkownika). W celu uwydatnienia istotnych elementów – w tym przypadku bil, oraz usunięcia szumów, wykonywane są również operacje morfologiczne.
+    W celu uzyskania maski wykonywane jest progowanie (wartość progowa konfigurowalna jest dynamicznie z poziomu interfejsu użytkownika). W celu uwydatnienia istotnych elementów – w tym przypadku bil, oraz usunięcia szumów, wykonywane są również operacje morfologiczne.
     \vspace{0.5cm}
     
     Przetestowane zostały różne kombinacje i częstotliwości operacji otwarcia, domknięcia oraz samych erozji i dylatacji. Ostatecznie, operacje, które pozwalają uzyskać najlepszy w tym przypadku efekt przy utrzymaniu odpowiedniej wydajności są operacje:
@@ -304,138 +305,124 @@ Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysu
         \item domknięcia – dylatacji, po której następuje erozja. Przydatna do zapełniania/domykania konturów.
     \end{enumerate}
 
-    \newpage
+    Różnice między sprogowanym obrazem przed i po operacjach morfologicznych przedstawione zostały na rysunkach \ref{thresh_before_morph} i \ref{thresh_after_morph}. % TODO: linki do doców opencv, może szczególik na temat algorytmów
 
-    Różnice między sprogowanym obrazem przed i po operacjach morfologicznych przedstawione zostały na rysunkach \ref{thresh_before_morph} i \ref{thresh_after_morph}.
-
-    \begin{figure}[!ht]
+    \begin{figure}[h]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/thresh_before_morph.png}
-        \caption{Sprogowany obraz przed przeprowadzeniem operacji morfologicznych}
+        \caption{Sprogowany obraz przed przeprowadzeniem operacji morfologicznych.}
         \label{thresh_before_morph}
     \end{figure}
 
-    \begin{figure}[!ht]
+    \begin{figure}[h]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/thresh_contours.png}
-        \caption{Sprogowany obraz po przeprowadzeniu operacji morfologicznych}
+        \caption{Sprogowany obraz po przeprowadzeniu operacji morfologicznych.}
         \label{thresh_after_morph}
     \end{figure}
     
-    \newpage
-
-    \item Detekcja bil odbywa się dwuetapowo wykorzystując połączenie dwóch metod – \textbf{FindCountours} \cite{FindContours} oraz \textbf{HoughCircles} \cite{HoughCircles}.
-    
-    \vspace{0.5cm}
+    Detekcja bil odbywa się dwuetapowo wykorzystując połączenie dwóch metod – \textbf{FindCountours} \cite{FindContours} oraz \textbf{HoughCircles} \cite{HoughCircles}.
 
     Pierwszym etapem detekcji jest metoda \textbf{FindContours}, która po odpowiednim dostrojeniu pozwala na stosunkowo szybkie wykrycie konturów bil. Dostrojenie tej metody w przypadku wykrywania bil, polega na sprawdzaniu czy znalezione kontury spełniają warunki kolistego kształtu oraz czy długość ich promienia znajduję się w odpowiednim przedziale. Metoda \textbf{FindContours} okazała się być bardziej wydajna i stabilna jeśli chodzi o wykrywane współrzędne od metody \textbf{HoughCircles}. Doskonale radzi sobie ona jeśli chodzi o wykrywanie bil, które znajdują się daleko od siebie co przedstawiono zostało na rysunku \ref{bp_detected}, nie generuje też ona fałszywych detekcji co ma miejsce w przypadku metody \textbf{HoughCircles}, nie radzi ona sobie jednak w przypadku bil znajdujących się blisko siebie lub blisko gracza – co powoduje sklejenie ich konturów co widać na rysunku \ref{thresh_before_hc} i tym samym uniemożliwia ich wykrycie. Dla takich przypadków powstał drugi etap detekcji, czyli wykorzystanie metody \textbf{HoughCircles}. Znalezione w pierwszym etapie bile zostają zamalowane a maska przechodzi dalej, do drugiego etapu.
-
-    \begin{figure}[!ht]
+    %TODO: Podlinkować info o findconturs
+    %TODO: Niejasne "Znalezione w pierwszym etapie bile zostają zamalowane a maska przechodzi dalej" potem już jasne, ale tutaj niejasne, można umotywować już tutaj
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/bp_detected.png}
-        \caption{Bile znajdujące się daleko od siebie - znalezione przy użyciu \textbf{FindContours}}
+        \caption{Bile znajdujące się daleko od siebie - znalezione przy użyciu \textbf{FindContours}.}
         \label{bp_detected}
     \end{figure}
 
-    \newpage
 
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/thresh_before_hc2.png}
-        \caption{Sklejenie konturu gracza i bili znajdującej się obok niego}
+        \caption{Sklejenie konturu gracza i bili znajdującej się obok niego.}
         \label{thresh_before_hc}
     \end{figure}
 
+    Drugim etapem detekcji jest metoda \textbf{HoughCircles}, która jest mniej wydajna, powoduje więcej fałszywych wykryć, a przede wszystkim jest mniej stabilna jeśli chodzi o wykryte współrzędne środków bil, co wyklucza ją jako podstawową i jedyną metodę detekcji. Pozwala ona jednak na detekcję nawet bardzo trudnych do wykrycia bil i bardzo dobrze spełnia się w roli detekcji pomocniczej - tam gdzie \textbf{FindContours} nie da rady. Zmodyfikowana w poprzednim etapie maska poprzez zamalowanie już wykrytych bil przedstawiona na rysunku \ref{thresh_hc} zostaje nałożona na różnicę klatek. Otrzymany w ten sposób obraz przedstawiony na rysunku \ref{masked_hc} przekazywany jest do metody \textbf{HoughCircles}.
+    %TODO: tutaj aż się prosi o dwa zdania o houghcircles ogólna metoda działania i zalinkowanie źródłą
 
-    Drugim etapem detekcji jest metoda \textbf{HoughCircles}, która jest mniej wydajna, powoduje więcej fałszywych wykryć a przede wszystkich jest mniej stabilna jeśli chodzi o wykryte współrzędne środków bil co wyklucza ją jako podstawową i jedyną metodę detekcji. Pozwala ona jednak na detekcję nawet bardzo trudnych do wykrycia bil i bardzo dobrze spełnia się w roli detekcji pomocniczej - tam gdzie \textbf{FindContours} nie da rady. Zmodyfikowana w poprzednim etapie maska – poprzez zamalowanie już wykrytych bil przedstawiona na rysunku \ref{thresh_hc} – zostaje nałożona na różnicę klatek i otrzymany w ten sposób obraz przedstawiony na rysunku \ref{masked_hc} przekazywany jest do metody \textbf{HoughCircles}.
-
-    \newpage
-
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/thresh_hc.png}
-        \caption{Uzyskana po pierwszym etapie maska z niewykrytą jedną bilą}
+        \caption{Uzyskana po pierwszym etapie maska z niewykrytą jedną bilą.}
         \label{thresh_hc}
     \end{figure}
 
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/masked_hc.png}
-        \caption{Nałożenie maski na różnice tła i klatki aktualnej}
+        \caption{Nałożenie maski na różnice tła i klatki aktualnej.}
         \label{masked_hc}
     \end{figure}
 
-    \newpage
-
-    \begin{figure}[!ht]
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/bp_detected_2.png}
-        \caption{Wykryte bile po obu etapach detekcji}
+        \caption{Wykryte bile po obu etapach detekcji.}
         \label{bp_detected2}
     \end{figure}
 
-    Ostatecznie otrzymywana jest lista współrzędnych środków wykrytych bil. Dla każdego z nich wycinany jest obraz bili w rozmiarze 50x50, który klasyfikowany jest przy użyciu konwolucyjnej sieci neuronowej.
-    
-    \vspace{0.5cm}
-    
-    Do utworzenia sieci neuronowej wykorzystany został framework \textbf{Tensorflow} \cite{TensorFlow} i \textbf{keras} \cite{keras}. Głównym wyzwaniem było uzyskanie odpowiedniej jakości klasyfikacji przy jednoczesnym utrzymaniu odpowiedniej wydajności.
-    Ostateczny model sieci składa się z z powtórzonej sekwencji dwóch warstw konwolucyjnych po których następują warstwa łącząca oraz warstwa dropout a na końcu do wsparcia ostatecznej klasyfikacji wykorzystywane są dwie klasyczne warstwy gęsto rozłożonych neuronów. 
-    
-    \vspace{0.5cm}
-    
-    Możliwość uruchomienia aplikacji w trybie, w którym wykrywane bile zapisywane są do pliku pozwoliła na zebranie własnego datasetu – który następnie został ręcznie zetykietowany. Utworzona została również metoda rozszerzania i zapewniania unikalności datasetu - każdy element datasetu mnożony jest 10 krotnie oraz poddawany jest losowym transformacjom – losowe odbicia w pionie i poziomie, przesunięcia, oraz obroty o losowy kąt z ustalonego przedziału. Pozwoliło to na utworzenie datasetu złożonego z \textbf{16,000 unikalnych obrazów bil} oraz \textbf{1,000 obrazów fałszywych – błędów detekcji}.
-
-    \begin{figure}[!ht]
-        \centering
-        \includegraphics[width=15cm]{./images/obrazki/data/augmented_data.png}
-        \caption{Fragment utworzonego datasetu}
-        \label{dataset}
-    \end{figure}
+    Ostatecznie otrzymywana jest lista współrzędnych środków wykrytych bil (rysunek \ref{bp_detected2}). Dla każdego z nich wycinany jest obraz bili w rozmiarze 50x50, który klasyfikowany jest przy użyciu konwolucyjnej sieci neuronowej.
+ 
+    \subsubsection{Klasyfikacja}
 
     
-    Wykryte i sklasyfikowane bile co przedstawia rysunek \ref{bp_classified} wysyłane są do końcowego procesu – \textbf{OutputModule}. Przed wysłaniem wykonywana jest też normalizacja ich współrzędnych do (2,1) by odpowiednio wyświetlone zostały ich pozycje w interfejsie graficznym, gdzie stół zawiera się we współrzędnych w przedziale (2,1). Parametry progowania, minimalny oraz maksymalny promień wykrywania bil, oraz wszystkie parametry metody \textbf{HoughCircles} konfigurowalne są z poziomu interfejsu aplikacji, co pozwala na dynamiczne ich dostosowywanie.
+    Do utworzenia sieci neuronowej wykorzystany został framework \textbf{Tensorflow} \cite{TensorFlow} i \textbf{Keras} \cite{keras}. Głównym wyzwaniem było uzyskanie odpowiedniej jakości klasyfikacji przy jednoczesnym utrzymaniu odpowiedniej wydajności.
+    Ostateczny model sieci składa się z powtórzonej sekwencji dwóch warstw konwolucyjnych, po których następują warstwa łącząca oraz warstwa dropout. Na końcu do wsparcia ostatecznej klasyfikacji wykorzystywane są dwie klasyczne warstwy gęsto rozłożonych neuronów. 
+    
+    
+    Możliwość uruchomienia aplikacji w trybie, w którym wykrywane bile zapisywane są do pliku pozwoliła na zebranie własnego datasetu – który następnie został ręcznie poetykietowany. Utworzona została również metoda rozszerzania i zapewniania unikalności datasetu - każdy element datasetu mnożony jest 10 krotnie oraz poddawany jest losowym transformacjom – losowe odbicia w pionie i poziomie, przesunięcia, oraz obroty o losowy kąt z ustalonego przedziału. Pozwoliło to na utworzenie datasetu złożonego z \textbf{16.000 unikalnych obrazów bil} oraz \textbf{1.000 obrazów fałszywych – błędów detekcji}.
 
-    \begin{figure}[!ht]
+    %TODO: nie mam folderu data
+    %\begin{figure}[!htb]
+    %    \centering
+    %    \includegraphics[width=15cm]{./images/obrazki/data/augmented_data.png}
+    %    \caption{Fragment utworzonego datasetu.}
+    %    \label{dataset}
+    %\end{figure}
+
+    
+    Wykryte i sklasyfikowane bile, co przedstawia rysunek \ref{bp_classified}, wysyłane są do końcowego procesu – \textbf{OutputModule}. Wartości wszystkich punktów normalizowane są do przestrzeni, gdzie prawy dolny punkt stołu ma współrzędne $(2, 1)$. Pozwala to uniezależnić wyświetlanie danych od rozmiaru klatki wejściowej. Parametry progowania, minimalny oraz maksymalny promień wykrywania bil, oraz wszystkie parametry metody \textbf{HoughCircles} konfigurowalne są z poziomu interfejsu aplikacji, co pozwala na dynamiczne ich dostosowywanie.
+
+    \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/klasyfikacja/bp_classified.png}
-        \caption{Ostateczny produkt uzyskiwany w \textbf{BallProcesor} - wykryte i sklasyfikowane bile}
+        \caption{Ostateczny produkt uzyskiwany w \textbf{BallProcesor} - wykryte i sklasyfikowane bile.}
         \label{bp_classified}
     \end{figure}
-
-
-\end{enumerate}
-
-
 
 \subsection{Kij}
 
 Uzyskiwanie sprogowanego obrazu odbywa się podobnie jak w przypadku detekcji bil, ale przy innych, bardziej odpowiednich dla tego problemu, parametrów, które tak jak w przypadku detekcji bil konfigurowalne są z poziomu interfejsu użytkownika. Uzyskany obraz sprogowany przedstawiony został na rysunku \ref{cp_thresh}
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./images/obrazki/cp/cp_thresh.png}
-    \caption{Sprogowany obraz po przeprowadzeniu operacji morfologicznych dla \textbf{CueProcessor}}
+    \caption{Sprogowany obraz po przeprowadzeniu operacji morfologicznych dla \textbf{CueProcessor}.}
     \label{cp_thresh}
 \end{figure}
 
 \newpage
 
-Do detekcji kijów wykorzystano metodę \textbf{HoughLinesP} \cite{HoughLinesP}. Pozwala ona na uzyskanie współrzędnych początków i końców kijów, które wysyłane są do \textbf{OutputModule}. Podobnie jak w przypadku \textbf{BallProcessor}, przed wysłaniem, współrzędne początków i końców kijów normalizowane są do (2,1).
+Do detekcji kijów wykorzystano metodę \textbf{HoughLinesP} \cite{HoughLinesP}. Pozwala ona na uzyskanie współrzędnych początków i końców kijów, które wysyłane są do \textbf{OutputModule}. Podobnie jak w przypadku \textbf{BallProcessor}, przed wysłaniem, współrzędne początków i końców kijów normalizowane są do przestrzeni, gdzie prawy dolny punkt stołu ma współrzędne $(2, 1)$
 
-\begin{figure}[!ht]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./images/obrazki/cp/cue_detected.png}
-    \caption{Wykryty kij}
+    \caption{Wykryty kij.}
     \label{cue_detected}
 \end{figure}
 
 
 
-\section{Interface użytkownika}
+\section{Interfejs użytkownika}
 
 Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa stworzona z wykorzystaniem frameworka Vue i Vuetify, na komponencie Canvas rysuje stół wraz z aktualną, wydedukowaną zawartością łuz (rysunek \ref{pool1}). Rysowanie elementów odbywa się ze wsparciem frameworka KonvaJS\cite{konva}. Białe półprzezroczyste elipsy wokół łuz obrazują obszar działania dedukcji wpadnięcia bili do łuzy. Pełny widok interfejsu graficznego przedstawia rysunek~\ref{interface}.
 
-\begin{figure}[!h]
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=15cm]{./images/pool1.png}
     \caption{Widok stołu w komponencie \textbf{PoolVD}.}
@@ -444,7 +431,7 @@ Wyświetlanie stołu odbywa się w komponencie \textbf{PoolVD}. Aplikacja webowa
 
 Aplikacja posiada wysuwalny panel (rysunek \ref{options}), z którego poziomu można zmieniać parametry detekcji i dedukcji. Zmiany ustawień detekcji generują opisane wcześniej zdarzenia, które odbierane są przez komponent \textbf{VideoProcessor}. Zmiany ustawień dedukcji mają efekt tylko na poziomie komponentu \textbf{PoolVD}.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
     \centering
     \includegraphics[height=19cm]{./images/options.png}
     \caption{Panel opcji w komponencie \textbf{PoolVD}.}
@@ -453,12 +440,16 @@ Aplikacja posiada wysuwalny panel (rysunek \ref{options}), z którego poziomu mo
 
 Z racji na możliwość powstania przesunięcia i zaburzeń proporcji stołu w kamerze ustawienia pozwalają na zmianę przesunięcia i skali wyświetlanych elementów stołu. Jest to końcowym etapem bezpośrednio poprzedzającym wyświetlanie elementów stołu, więc dedukcja i analiza pozycji odbywa się na danych otrzymanych od komponentu \textbf{VideoProcessor}.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
     \centering
-    \includegraphics[width=\linewidth]{./images/interface.png}
+    \includegraphics[width=15cm]{./images/interface.png}
     \caption{Interfejs komponentu \textbf{PoolVD} z testowymi danymi.}
     \label{interface}
 \end{figure}
+
+
+\FloatBarrier
+
 
 \section{Uruchomienia systemu}
 W calu uruchomienia systemu należy udostępnić źródło danych i uruchomić dwa główne komponenty - \textbf{VideoProcessor} i \textbf{PoolVD}. Wszystkie polecenia muszą być wykonane z katalogu głównego projektu.
@@ -469,27 +460,42 @@ W calu uruchomienia systemu należy udostępnić źródło danych i uruchomić d
 $ ./video_processor/test/stream.sh ./video_processor/test/videos/test3.mp4 127.0.0.1:8444
 \end{lstlisting}
 Powyższa komenda wysyła dane na port 8444 hosta lokalnego wykorzystując narzędzie ffmpeg.
+
 \subsubsection{VideoProcessor}
+
 Komponent \textbf{VideoProcessor} powinien być uruchomiony za pomocą następującej komendy:
+
+\begin{minipage}{\linewidth}
+
 \begin{lstlisting}
 $ pipenv install
 $ pipenv shell
 $ python3 -m video_processor.src.main -p 8444 -c 8888 -w 1280 -ht 720 -f 30
 \end{lstlisting}
+\end{minipage}
+
 Argumentami komendy są kolejno port źródła danych, port nasłuchu klientów \textbf{PoolVD}, wysokość klatki, szerokość klatki i liczba klatek na sekundę materiału źródłowego. Uruchomienie modułu wymaga wcześniejszego zainstalowania zależności zdefiniowanych w pliku Pipfile narzędziem Pipenv.
 \subsubsection{PoolVD}
 Uruchomienie komponentu \textbf{PoolVD} odbywa się w oparciu o środowisko NodeJS i narzędzia VueCLI4 \cite{vuecli} z wykorzystaniem wersji deweloperskiej serwera. Port połączania z komponentem \textbf{VideoProcessor} (8888) w obecnej wersji jest na stałe wpisany w kod. Aplikacja dostępna jest pod adresem \lstinline{localhost:8080}.
+
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
 $ ( cd pool_vd && npm install )
 $ ( cd pool_vd && npm run serve )
 \end{lstlisting}
+\end{minipage}
 
 \section{Podsumowanie}
 
 \subsection{Zrealizowane założenia}
 
+System w obecnej formie realizuje odbieranie materiału źródłowego, jego przetwarzanie i wysyłanie danych do użytkownika. Pozwala na detekcję i klasyfikację bili oraz na detekcję kijów. Aplikacja użytkownika pozwala na modyfikację parametrów klasyfikacji i detekcji oraz odpowiada za dedukcję stanu gry - odrzucanie błędów klasyfikacji i detekcji oraz za wykrywanie wpadnięć bili do łuzy. Parametry dedukcji są również konfigurowalne.
+
 \subsection{Możliwości rozwoju}
 
+Język Python, w którym napisany został komponent \textbf{VideoProcessor} doskonale sprawdza się w prototypowaniu złożonych rozwiązań dotyczących przetwarzania obrazu ze względu na dostępność szerokiego wachlarza bibliotek. Sprawdza się nawet w przypadku systemów działających na wielu rdzeniach procesora, mimo ograniczeń jakie niesie ze sobą GIL\cite{gil}. Niestety skonstruowane przez nas rozwiązanie przesyłania stanów stołu wiązało się z użyciem korutyn, których wykonywanie w połączeniu z wieloprocesorowością i z wykrozystaniem obu kolejek bili i kilów, prowadziło do nieprzewidywalnych zachowań i braku stabilności przesyłania stanu stołu. Dlatego też nie udało się zaimplementować efektywnego przesyłania pozycji kijów. Rozwijając projekt można przebudować moduł \textbf{OutputModule} tak, aby sprawnie obsługiwał protokół WebSocket, który jest podstawą do wydajnego przesyłania danych do aplikacji webowej komponentu \textbf{PoolVD}.
+
+Rozwój projektu może wiązać się oczywiście też z poprawianiem struktury sieci neuronowej oraz zebranych lepszych danych treningowych obejmujących różne stoły i warianty kolorów bili. Wydajność detekcji i klasyfikacji bili ma bardzo duże znaczenie w procesie dedukcji stanu stołu.
 
 \clearpage
 \newpage
