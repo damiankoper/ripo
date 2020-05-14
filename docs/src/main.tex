@@ -235,8 +235,8 @@ Etapy przetwarzania podczas procesu inicjalizacji to kolejno:
         \item Polepszanie macierzy transformacji (na podstawie uśrednionej klatki).
     \end{enumerate}
     
-    Na podstawie kolorów stołu, który konfigurowalny jest z poziomu interfejsu użytkownika, dla uśrednionej klatki tworzona jest maska przedstawiona na rysunku \ref{pool_table_mask}.
-    % TODO: Jak tworzona jest ta maska? przestrzeń HSV range opisać, lepiej niż RGB, lepsza interpolacja
+    Uśredniona klatka konwertowana jest na przestrzeń kolorów HSV (hue, saturation, value), gdzie Hue - reprezentuje typ koloru, Saturation - reprezentuje intensywność koloru a Value - reprezentuje jasność koloru. Ponieważ typ koloru modelowany jest tylko przez kanał Hue, segmentacja części obrazu na podstawie koloru łatwiejsza jest w przestrzeni HSV niż w przestrzeni barw RGB, gdzie kolory kodowane są przy użyciu trzech kanałów.
+    Po konwersji uśrednionej klatki na przestrzeń barw HSV, tworzona jest maska, na podstawie dolnej i górnej granicy zakresu wartości pikseli w przestrzeni kolorów HSV. Granice te konfigurowalne są z poziomu interfejsu użytkownika. Uzyskana maska przedstawiona jest na rysunku \ref{pool_table_mask}.
 
     \begin{figure}[!htb]
         \centering
@@ -246,7 +246,7 @@ Etapy przetwarzania podczas procesu inicjalizacji to kolejno:
     \end{figure}
 
 
-    W otrzymanej masce znajdywany jest największy kontur, do którego zostaje dopasowany prostokąt, co przedstawione zostało na rysunku \ref{detected_pool_table}. % TODO: JAk te kontury są znajdowane? Link do algorytmu/doców cv1
+        Przy użyciu funkcji \textbf{findContours} opisanej na stronie \cite{FindContours} w otrzymanej masce znajdywany jest największy kontur, do którego zostaje dopasowany prostokąt, co przedstawione zostało na rysunku \ref{detected_pool_table}.
 
     \begin{figure}[!htb]
         \centering
@@ -256,8 +256,7 @@ Etapy przetwarzania podczas procesu inicjalizacji to kolejno:
     \end{figure}
 
 
-    Granice znalezionego prostokąta wykorzystywane są do utworzenia, a potem polepszenia macierzy transformacji – która pozwala na odpowiednie wycięcie i obrócenie stołu w celu wypełnienia przez niego ramki.
-    % TODO: Jak działa ta transformacja perspektywiczna + Link do algorytmu
+    Granice znalezionego prostokąta, a dokładniej 4 pary współrzędnych jego rogów wykorzystywane są do utworzenia macierzy transformacji przy użyciu metody \textbf{getPerspectiveTransform} opisanej na stronie \cite{getPerspectiveTransform}, macierz ta polepszana jest z czasem trwania procesu inicjalizacji ze względu na uśrednianie klatki, które powoduje uzyskiwanie lepszych wartości współrzędnych rogów stołu. Utworzona macierz transformacji pozwala na wykonanie transformacji perspektywicznej w celu uzyskania odpowiednio wyciętego i obróconego stołu wypełniającego całą ramkę. W tym celu wykorzystana została metoda \textbf{warpPerspective} opisana na stronie \cite{warpPerspective}.  
 
 
 \subsection{Produkty przetwarzania wstępnego}
@@ -298,14 +297,14 @@ Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysu
     W celu uzyskania maski wykonywane jest progowanie (wartość progowa konfigurowalna jest dynamicznie z poziomu interfejsu użytkownika). W celu uwydatnienia istotnych elementów – w tym przypadku bil, oraz usunięcia szumów, wykonywane są również operacje morfologiczne.
     \vspace{0.5cm}
     
-    Przetestowane zostały różne kombinacje i częstotliwości operacji otwarcia, domknięcia oraz samych erozji i dylatacji. Ostatecznie, operacje, które pozwalają uzyskać najlepszy w tym przypadku efekt przy utrzymaniu odpowiedniej wydajności są operacje:
+    Przetestowane zostały różne kombinacje i częstotliwości operacji otwarcia, domknięcia oraz samych erozji - które powodują usunięcie tych punktów obrazu o wartości 1, których sąsiedztwo opisane przez podany kernel nie jest w każdym przypadku równe 1 i dylatacji - działającej odwrotnie, wartość piksela zmieniana jest na 1 gdy przynajmniej 1 piksel w sąsiedztwie jest równy 1. Ostatecznie, operacje, które pozwalają uzyskać najlepszy w tym przypadku efekt przy utrzymaniu odpowiedniej wydajności są operacje:
 
     \begin{enumerate}
         \item otwarcia – erozji, po której następuje dylatacja, która dobrze sprawdza się do usuwania szumów z obrazu.
         \item domknięcia – dylatacji, po której następuje erozja. Przydatna do zapełniania/domykania konturów.
     \end{enumerate}
 
-    Różnice między sprogowanym obrazem przed i po operacjach morfologicznych przedstawione zostały na rysunkach \ref{thresh_before_morph} i \ref{thresh_after_morph}. % TODO: linki do doców opencv, może szczególik na temat algorytmów
+    Różnice między sprogowanym obrazem przed i po operacjach morfologicznych przedstawione zostały na rysunkach \ref{thresh_before_morph} i \ref{thresh_after_morph}. Opis metody \textbf{morphologyEx}, która została wykorzystana w celu zastosowania opisanych operacji morfologicznych znajduje się na stronie \cite{morphologyEx}.
 
     \begin{figure}[h]
         \centering
@@ -323,9 +322,8 @@ Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysu
     
     Detekcja bil odbywa się dwuetapowo wykorzystując połączenie dwóch metod – \textbf{FindCountours} \cite{FindContours} oraz \textbf{HoughCircles} \cite{HoughCircles}.
 
-    Pierwszym etapem detekcji jest metoda \textbf{FindContours}, która po odpowiednim dostrojeniu pozwala na stosunkowo szybkie wykrycie konturów bil. Dostrojenie tej metody w przypadku wykrywania bil, polega na sprawdzaniu czy znalezione kontury spełniają warunki kolistego kształtu oraz czy długość ich promienia znajduję się w odpowiednim przedziale. Metoda \textbf{FindContours} okazała się być bardziej wydajna i stabilna jeśli chodzi o wykrywane współrzędne od metody \textbf{HoughCircles}. Doskonale radzi sobie ona jeśli chodzi o wykrywanie bil, które znajdują się daleko od siebie co przedstawiono zostało na rysunku \ref{bp_detected}, nie generuje też ona fałszywych detekcji co ma miejsce w przypadku metody \textbf{HoughCircles}, nie radzi ona sobie jednak w przypadku bil znajdujących się blisko siebie lub blisko gracza – co powoduje sklejenie ich konturów co widać na rysunku \ref{thresh_before_hc} i tym samym uniemożliwia ich wykrycie. Dla takich przypadków powstał drugi etap detekcji, czyli wykorzystanie metody \textbf{HoughCircles}. Znalezione w pierwszym etapie bile zostają zamalowane a maska przechodzi dalej, do drugiego etapu.
-    %TODO: Podlinkować info o findconturs
-    %TODO: Niejasne "Znalezione w pierwszym etapie bile zostają zamalowane a maska przechodzi dalej" potem już jasne, ale tutaj niejasne, można umotywować już tutaj
+    Pierwszym etapem detekcji jest metoda \textbf{FindContours}, która po odpowiednim dostrojeniu pozwala na stosunkowo szybkie wykrycie konturów bil. Dostrojenie tej metody w przypadku wykrywania bil, polega na sprawdzaniu czy znalezione kontury spełniają warunki kolistego kształtu oraz czy długość ich promienia znajduję się w odpowiednim przedziale. Metoda \textbf{FindContours} okazała się być bardziej wydajna i stabilna jeśli chodzi o wykrywane współrzędne od metody \textbf{HoughCircles}. Doskonale radzi sobie ona jeśli chodzi o wykrywanie bil, które znajdują się daleko od siebie co przedstawiono zostało na rysunku \ref{bp_detected}, nie generuje też ona fałszywych detekcji co ma miejsce w przypadku metody \textbf{HoughCircles}, nie radzi ona sobie jednak w przypadku bil znajdujących się blisko siebie lub blisko gracza – co powoduje sklejenie ich konturów co widać na rysunku \ref{thresh_before_hc} i tym samym uniemożliwia ich wykrycie. Dla takich przypadków powstał drugi etap detekcji, czyli wykorzystanie metody \textbf{HoughCircles}. Znalezione w pierwszym etapie bile zostają zamalowane a maska, która może zawierać niewykryte bile przechodzi dalej, do drugiego etapu, gdzie użycie metody \textbf{HoughCircles} pozwoli wykryć te bile, których nie udało się wykryć w tym etapie.
+
     \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/bp_detected.png}
@@ -341,9 +339,8 @@ Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysu
         \label{thresh_before_hc}
     \end{figure}
 
-    Drugim etapem detekcji jest metoda \textbf{HoughCircles}, która jest mniej wydajna, powoduje więcej fałszywych wykryć, a przede wszystkim jest mniej stabilna jeśli chodzi o wykryte współrzędne środków bil, co wyklucza ją jako podstawową i jedyną metodę detekcji. Pozwala ona jednak na detekcję nawet bardzo trudnych do wykrycia bil i bardzo dobrze spełnia się w roli detekcji pomocniczej - tam gdzie \textbf{FindContours} nie da rady. Zmodyfikowana w poprzednim etapie maska poprzez zamalowanie już wykrytych bil przedstawiona na rysunku \ref{thresh_hc} zostaje nałożona na różnicę klatek. Otrzymany w ten sposób obraz przedstawiony na rysunku \ref{masked_hc} przekazywany jest do metody \textbf{HoughCircles}.
-    %TODO: tutaj aż się prosi o dwa zdania o houghcircles ogólna metoda działania i zalinkowanie źródłą
-
+    Drugim etapem detekcji jest metoda \textbf{HoughCircles}, która wykorzystuje modyfikację oryginalej transformacji Hougha (metody wykrywania prostych) pozwalającą na wykrywanie kolistych kształtów. Algorytm \textbf{Circle Hough Transform} opisany jest na stronie \cite{CirclesHoughTransform} a metoda \textbf{HoughCircles} opisana jest na stronie \cite{HoughCircles}. Jest ona mniej wydajna od \textbf{FindContours}, powoduje więcej fałszywych wykryć, a przede wszystkim jest mniej stabilna jeśli chodzi o wykryte współrzędne środków bil, co wyklucza ją jako podstawową i jedyną metodę detekcji. Pozwala ona jednak na detekcję nawet bardzo trudnych do wykrycia bil i bardzo dobrze spełnia się w roli detekcji pomocniczej - tam gdzie \textbf{FindContours} nie da rady. Zmodyfikowana w poprzednim etapie maska poprzez zamalowanie już wykrytych bil przedstawiona na rysunku \ref{thresh_hc} zostaje nałożona na różnicę klatek. Otrzymany w ten sposób obraz przedstawiony na rysunku \ref{masked_hc} przekazywany jest do metody \textbf{HoughCircles}.
+  
     \begin{figure}[!htb]
         \centering
         \includegraphics[width=15cm]{./images/obrazki/bp/thresh_hc.png}
@@ -376,13 +373,12 @@ Produktami przetwarzania wstępnego są klatka uśredniona przedstawiona na rysu
     
     Możliwość uruchomienia aplikacji w trybie, w którym wykrywane bile zapisywane są do pliku pozwoliła na zebranie własnego datasetu – który następnie został ręcznie poetykietowany. Utworzona została również metoda rozszerzania i zapewniania unikalności datasetu - każdy element datasetu mnożony jest 10 krotnie oraz poddawany jest losowym transformacjom – losowe odbicia w pionie i poziomie, przesunięcia, oraz obroty o losowy kąt z ustalonego przedziału. Pozwoliło to na utworzenie datasetu złożonego z \textbf{16.000 unikalnych obrazów bil} oraz \textbf{1.000 obrazów fałszywych – błędów detekcji}.
 
-    %TODO: nie mam folderu data
-    %\begin{figure}[!htb]
-    %    \centering
-    %    \includegraphics[width=15cm]{./images/obrazki/data/augmented_data.png}
-    %    \caption{Fragment utworzonego datasetu.}
-    %    \label{dataset}
-    %\end{figure}
+    \begin{figure}[!htb]
+       \centering
+       \includegraphics[width=15cm]{./images/obrazki/klasyfikacja/augmented_data.png}
+       \caption{Fragment utworzonego datasetu.}
+       \label{dataset}
+    \end{figure}
 
     
     Wykryte i sklasyfikowane bile, co przedstawia rysunek \ref{bp_classified}, wysyłane są do końcowego procesu – \textbf{OutputModule}. Wartości wszystkich punktów normalizowane są do przestrzeni, gdzie prawy dolny punkt stołu ma współrzędne $(2, 1)$. Pozwala to uniezależnić wyświetlanie danych od rozmiaru klatki wejściowej. Parametry progowania, minimalny oraz maksymalny promień wykrywania bil, oraz wszystkie parametry metody \textbf{HoughCircles} konfigurowalne są z poziomu interfejsu aplikacji, co pozwala na dynamiczne ich dostosowywanie.
@@ -407,7 +403,7 @@ Uzyskiwanie sprogowanego obrazu odbywa się podobnie jak w przypadku detekcji bi
 
 \newpage
 
-Do detekcji kijów wykorzystano metodę \textbf{HoughLinesP} \cite{HoughLinesP}. Pozwala ona na uzyskanie współrzędnych początków i końców kijów, które wysyłane są do \textbf{OutputModule}. Podobnie jak w przypadku \textbf{BallProcessor}, przed wysłaniem, współrzędne początków i końców kijów normalizowane są do przestrzeni, gdzie prawy dolny punkt stołu ma współrzędne $(2, 1)$
+Do detekcji kijów wykorzystano metodę \textbf{HoughLinesP} opisaną na stronie \cite{HoughLinesP}, która wykorzystuje probabilistyczny algorytm transformacji Hougha \cite{ProbabilisticHoughTransform}. Pozwala ona na uzyskanie współrzędnych początków i końców kijów, które wysyłane są do \textbf{OutputModule}. Podobnie jak w przypadku \textbf{BallProcessor}, przed wysłaniem, współrzędne początków i końców kijów normalizowane są do przestrzeni, gdzie prawy dolny punkt stołu ma współrzędne $(2, 1)$
 
 \begin{figure}[!htb]
     \centering
