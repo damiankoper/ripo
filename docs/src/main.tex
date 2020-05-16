@@ -114,13 +114,13 @@ Stworzony system składa się z dwóch głównych komponentów:
     \item PoolVD
 \end{itemize}
 
-Komponent \textit{VideoProcessor} zajmuje się przetwarzaniem wideo i~komunikacją z komponentem \textit{PoolVD}. Pozyskuje on obraz dostarczony poprzez strumieniem używającym protokołu UDP. Nie użyto tutaj protokołu TCP, ponieważ analiza stołu powinna odbywać się w~czasie rzeczywistym i~rozwiązanie to wprowadziłoby dodatkowy element synchronizacji, który mógłby mieć wpływ na dostarczany obraz.
+Komponent \textit{VideoProcessor} zajmuje się przetwarzaniem wideo i~komunikacją z komponentem \textit{PoolVD}. Pozyskuje on obraz dostarczany strumieniem używającym protokołu UDP. Nie użyto tutaj protokołu TCP, ponieważ analiza stołu powinna odbywać się w~czasie rzeczywistym i~rozwiązanie to wprowadziłoby dodatkowy element synchronizacji, który mógłby mieć wpływ na dostarczany obraz.
 
-Źródłem obrazu może być klip wideo wysyłany z użyciem narzędzie \textit{ffmpeg}, albo obraz na żywo z kamery RaspberryPI. Oba te rozwiązania zostały przetestowane. Wykorzystanie strumienia sieciowego jako źródła obrazu jest rozwiązaniem uniwersalnym, ponieważ oferuje stabilny interfejs po stronie komponentu \textit{VideoProcessor}.
+Źródłem obrazu może być klip wideo wysyłany z użyciem narzędzia \textit{ffmpeg}, albo obraz na żywo z kamery RaspberryPI. Oba te rozwiązania zostały przetestowane. Wykorzystanie strumienia sieciowego jako źródła obrazu jest rozwiązaniem uniwersalnym, ponieważ oferuje stabilny interfejs po stronie komponentu \textit{VideoProcessor}.
 
-Komponent \textit{VideoProcessor} jest równocześnie serwerem obsługującym połączenia zgodne z protokołem WebSocket. Umożliwia to na szybkie dostarczanie danych wyjściowych do dowolnej liczby klientów. Umożliwia to również na opartą na zdarzeniach komunikację pomiędzy klientami wyświetlającymi dane, omówioną w~dalszej części sprawozdania. Protokół WebSocket, w~przeciwieństwie do HTTP do dwukierunkowej komunikacji wykorzystuje zawsze jeden strumień.
+Komponent \textit{VideoProcessor} jest równocześnie serwerem obsługującym połączenia zgodne z protokołem WebSocket. Umożliwia to szybkie dostarczanie danych wyjściowych do dowolnej liczby klientów. Umożliwia to również na opartą na zdarzeniach komunikację pomiędzy klientami wyświetlającymi dane, omówioną w~dalszej części sprawozdania. Protokół WebSocket, w~przeciwieństwie do HTTP do dwukierunkowej komunikacji wykorzystuje zawsze jeden strumień.
 
-Przepływ danych od materiału wideo do użytkownika zobrazowane zostało na diagramie z rysunku \ref{dataflow}.
+Przepływ danych od materiału wideo do użytkownika zobrazowany został na diagramie z rysunku \ref{dataflow}.
 
 
 \begin{figure}[!htb]
@@ -132,7 +132,7 @@ Przepływ danych od materiału wideo do użytkownika zobrazowane zostało na dia
 
 \subsection{Architektura}
 
-Detekcja, klasyfikacja, wyświetlania i~dedukcja są złożonymi procesami używającymi wiele zasobów sprzętowych. Jednym z filarów sprawnego działania systemu jest sprawny przepływ danych i~wielokrotne używanie produktów pośrednich tego przetwarzania. Aby uzyskać płynność przetwarzanego obrazu i~optymalne wykorzystanie zasobów wykorzystano podejście wielowątkowe połączone z asynchronicznością.
+Detekcja, klasyfikacja, wyświetlanie i~dedukcja są złożonymi procesami używającymi wiele zasobów sprzętowych. Jednym z filarów sprawnego działania systemu jest sprawny przepływ danych i~wielokrotne używanie produktów pośrednich tego przetwarzania. Aby uzyskać płynność przetwarzanego obrazu i~optymalne wykorzystanie zasobów wykorzystano podejście wielowątkowe połączone z asynchronicznością.
 
 \subsection{Komponent VideoProcessor}
 
