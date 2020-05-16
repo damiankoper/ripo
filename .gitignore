@@ -1,4 +1,5 @@
-docs/out
+docs/out/*
+!docs/out/*.pdf
 *.pyc
 *.p
 model.data*
