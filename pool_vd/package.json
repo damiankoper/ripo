@@ -22,7 +22,7 @@
     "konva": "^4.2.0",
     "lodash": "^4.17.15",
     "monitor.io": "^0.1.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "socket.io-client": "^2.3.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.2",
